@@ -19,7 +19,11 @@ while !ARGV.empty?
   end
 end
 
-rb_files.each { |f| raise "can't read #{f}" unless File.readable?(f) }
+raise "-o outfile is required" unless outfile
+
+rb_code = rb_files.map { |f|
+  File.read(f)
+}.join("\n").gsub("\n", '\n').gsub('"', '\"')
 
 mruby_src_dir = ENV['MRUBY_SRC']
 raise "env: MRUBY_SRC is required" unless mruby_src_dir
@@ -40,20 +44,15 @@ main(void)
     printf("mrb problem");
     exit(1);
   }
-  FILE * fp;
 EOF
 
-rb_files.each { |f|
-  c_code += <<EOF
-
-  fp = fopen("#{f}", "r");
-  mrb_load_file(mrb, fp);
-  fclose(fp);
-
-EOF
-}
+c_code += '  mrb_load_string(mrb, "'
+c_code += rb_code
+c_code += '");'
+c_code += "\n"
 
 c_code += <<EOF
+  mrb_load_string(mrb, "puts :goodbye_world");
   mrb_close(mrb);
   return 0;
 }
