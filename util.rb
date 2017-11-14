@@ -3,10 +3,11 @@
 require 'tempfile'
 
 # args like: file1.rb file2.rb -o outfile
-#  possibly: file1.rb -o outfile file2.rb
+#  possibly: file1.rb -o outfile file2.rb -c generated.c
 
 rb_files = []
 outfile = nil
+cfile = nil
 
 while !ARGV.empty?
   arg = ARGV.shift
@@ -14,16 +15,14 @@ while !ARGV.empty?
     outfile = ARGV.shift
     raise "no outfile provided with -o" unless outfile
     raise "#{outfile} is misnamed" if File.extname(outfile) == '.rb'
+  elsif arg == '-c'
+    cfile = File.open(ARGV.shift, "w")
   else
     rb_files << arg
   end
 end
 
 raise "-o outfile is required" unless outfile
-
-rb_code = rb_files.map { |f|
-  File.read(f)
-}.join("\n").gsub("\n", '\n').gsub('"', '\"')
 
 mruby_src_dir = ENV['MRUBY_SRC']
 raise "env: MRUBY_SRC is required" unless mruby_src_dir
@@ -46,13 +45,15 @@ main(void)
   }
 EOF
 
-c_code += '  mrb_load_string(mrb, "'
-c_code += rb_code
-c_code += '");'
-c_code += "\n"
+rb_files.each { |rbf|
+  c_code += "\n  /* #{rbf} */\n"
+  c_code += '  mrb_load_string(mrb, "'
+  c_code += File.read(rbf).gsub("\n", '\n').gsub('"', '\"')
+  c_code += '");'
+  c_code += "\n\n"
+}
 
 c_code += <<EOF
-  mrb_load_string(mrb, "puts :goodbye_world");
   mrb_close(mrb);
   return 0;
 }
@@ -60,7 +61,7 @@ EOF
 
 # puts c_code + "\n"
 
-file = Tempfile.new(['c_code', '.c'])
+file = cfile || Tempfile.new(['generated', '.c'])
 file.write(c_code)
 file.close
 
