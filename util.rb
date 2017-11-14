@@ -16,7 +16,7 @@ while !ARGV.empty?
     raise "no outfile provided with -o" unless outfile
     raise "#{outfile} is misnamed" if File.extname(outfile) == '.rb'
   elsif arg == '-c'
-    cfile = File.open(ARGV.shift, "w")
+    cfile = File.open(ARGV.shift || 'generated.c', "w")
   else
     rb_files << arg
   end
