@@ -30,6 +30,11 @@ raise "bad MRUBY_SRC #{mruby_src_dir}" unless File.directory? mruby_src_dir
 mruby_inc_dir = File.join(mruby_src_dir, 'include')
 raise "bad MRUBY_SRC #{mruby_inc_dir}" unless File.directory? mruby_inc_dir
 
+def rb2c(rb_filename)
+  c_str = File.read(rb_filename).gsub("\n", '\n').gsub('"', '\"')
+  'mrb_load_nstring(mrb, "' + c_str + '", ' + "#{c_str.size});\n"
+end
+
 c_code = <<EOF
 #include <stdlib.h>
 #include <mruby.h>
@@ -47,10 +52,7 @@ EOF
 
 rb_files.each { |rbf|
   c_code += "\n  /* #{rbf} */\n"
-  c_code += '  mrb_load_string(mrb, "'
-  c_code += File.read(rbf).gsub("\n", '\n').gsub('"', '\"')
-  c_code += '");'
-  c_code += "\n\n"
+  c_code += '  ' + rb2c(rbf) + "\n"
 }
 
 c_code += <<EOF
