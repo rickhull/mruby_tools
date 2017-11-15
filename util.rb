@@ -44,7 +44,6 @@ c_code = <<'EOF'
 #include <stdlib.h>
 #include <mruby.h>
 #include <mruby/compile.h>
-#include <mruby/variable.h>
 #include <mruby/string.h>
 
 void check_exc(mrb_state *mrb) {
