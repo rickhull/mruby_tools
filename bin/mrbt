@@ -7,9 +7,7 @@ require 'mruby_tools'
 #  possibly: file1.rb -o outfile file2.rb -c generated.c
 
 opts = MRubyTools.args(ARGV)
-verbose, outfile, rb_files = %w[verbose outfile rb_files].map { |s|
-  opts.fetch(s.to_sym)
-}
+outfile = opts.fetch(:outfile)
 
 c_code = <<'EOF'
 #include <stdlib.h>
@@ -40,7 +38,7 @@ main(void)
   }
 EOF
 
-c_code += rb_files.map { |rbf|
+c_code += opts.fetch(:rb_files).map { |rbf|
   "\n" +  MRubyTools.rb2c(rbf) + "\n\n"
 }.join
 
@@ -50,7 +48,7 @@ c_code += rb_files.map { |rbf|
 }
 EOF
 
-puts c_code + "\n" if verbose
+puts c_code + "\n" if opts[:verbose]
 
 file = opts[:cfile] || Tempfile.new(['generated', '.c'])
 file.write(c_code)
