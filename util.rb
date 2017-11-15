@@ -99,6 +99,4 @@ gcc_args = ['-std=c99', "-I", mruby_inc_dir, file.path, "-o", outfile,
             '-lm']
 
 puts "compiling..."
-if system('gcc', *gcc_args)
-  puts "created binary executable: #{outfile}"
-end
+puts "created binary executable: #{outfile}" if system('gcc', *gcc_args)
