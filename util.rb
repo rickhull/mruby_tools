@@ -8,6 +8,7 @@ require 'tempfile'
 rb_files = []
 outfile = nil
 cfile = nil
+verbose = false
 
 while !ARGV.empty?
   arg = ARGV.shift
@@ -17,11 +18,21 @@ while !ARGV.empty?
     raise "#{outfile} is misnamed" if File.extname(outfile) == '.rb'
   elsif arg == '-c'
     cfile = File.open(ARGV.shift || 'generated.c', "w")
+  elsif arg == '-v'
+    verbose = true
   else
     rb_files << arg
   end
 end
 outfile ||= 'outfile'
+
+if verbose
+  puts "rb_files: #{rb_files.join(', ')}"
+  puts " outfile: #{outfile}"
+  puts "   cfile: #{File.basename(cfile)}" if cfile
+  puts " verbose: #{verbose}"
+  puts "---"
+end
 
 mruby_src_dir = ENV['MRUBY_SRC']
 raise "env: MRUBY_SRC is required" unless mruby_src_dir
