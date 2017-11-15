@@ -1,55 +1,15 @@
 #!/usr/bin/env ruby
 
 require 'tempfile'
+require 'mruby_tools'
 
 # args like: file1.rb file2.rb -o outfile
 #  possibly: file1.rb -o outfile file2.rb -c generated.c
 
-rb_files = []
-outfile = nil
-cfile = nil
-verbose = false
-
-while !ARGV.empty?
-  arg = ARGV.shift
-  if arg == '-o'
-    outfile = ARGV.shift
-    raise "no outfile provided with -o" unless outfile
-    raise "#{outfile} is misnamed" if File.extname(outfile) == '.rb'
-  elsif arg == '-c'
-    cfile = File.open(ARGV.shift || 'generated.c', "w")
-  elsif arg == '-v'
-    verbose = true
-  else
-    rb_files << arg
-  end
-end
-outfile ||= 'outfile'
-
-if verbose
-  puts "rb_files: #{rb_files.join(', ')}"
-  puts " outfile: #{outfile}"
-  puts "   cfile: #{File.basename(cfile)}" if cfile
-  puts " verbose: #{verbose}"
-  puts "---"
-end
-
-mruby_src_dir = ENV['MRUBY_SRC']
-raise "env: MRUBY_SRC is required" unless mruby_src_dir
-raise "bad MRUBY_SRC #{mruby_src_dir}" unless File.directory? mruby_src_dir
-mruby_inc_dir = File.join(mruby_src_dir, 'include')
-raise "bad MRUBY_SRC #{mruby_inc_dir}" unless File.directory? mruby_inc_dir
-
-def rb2c(rb_filename, indent: '  ')
-  c_str = File.read(rb_filename)
-  size = c_str.size
-  c_str = c_str.gsub("\n", '\n').gsub('"', '\"')
-  c_str = File.read(rb_filename).gsub("\n", '\n').gsub('"', '\"')
-  [ "/* #{rb_filename} */",
-    'mrb_load_nstring(mrb, "' + c_str + '", ' + "#{size});",
-    "check_exc(mrb, \"#{rb_filename}\");",
-  ].map { |s| indent + s }.join("\n")
-end
+opts = MRubyTools.args(ARGV)
+verbose, outfile, rb_files = %w[verbose outfile rb_files].map { |s|
+  opts.fetch(s.to_sym)
+}
 
 c_code = <<'EOF'
 #include <stdlib.h>
@@ -80,7 +40,9 @@ main(void)
   }
 EOF
 
-  c_code += rb_files.map { |rbf| "\n" +  rb2c(rbf) + "\n\n" }.join
+c_code += rb_files.map { |rbf|
+  "\n" +  MRubyTools.rb2c(rbf) + "\n\n"
+}.join
 
   c_code += <<EOF
   mrb_close(mrb);
@@ -90,13 +52,16 @@ EOF
 
 puts c_code + "\n" if verbose
 
-file = cfile || Tempfile.new(['generated', '.c'])
+file = opts[:cfile] || Tempfile.new(['generated', '.c'])
 file.write(c_code)
 file.close
 
-gcc_args = ['-std=c99', "-I", mruby_inc_dir, file.path, "-o", outfile,
-            File.join(mruby_src_dir, 'build', 'host', 'lib', 'libmruby.a'),
-            '-lm']
+msd = MRubyTools.mruby_src_dir
+
+gcc_args = [
+  '-std=c99', "-I", File.join(msd, 'include'), file.path, "-o", outfile,
+  File.join(msd, 'build', 'host', 'lib', 'libmruby.a'), '-lm',
+]
 
 puts "compiling..."
 puts "created binary executable: #{outfile}" if system('gcc', *gcc_args)
