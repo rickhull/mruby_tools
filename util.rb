@@ -21,8 +21,7 @@ while !ARGV.empty?
     rb_files << arg
   end
 end
-
-raise "-o outfile is required" unless outfile
+outfile ||= 'outfile'
 
 mruby_src_dir = ENV['MRUBY_SRC']
 raise "env: MRUBY_SRC is required" unless mruby_src_dir
