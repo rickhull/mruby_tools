@@ -34,8 +34,9 @@ def rb2c(rb_filename, indent: '  ')
   size = c_str.size
   c_str = c_str.gsub("\n", '\n').gsub('"', '\"')
   c_str = File.read(rb_filename).gsub("\n", '\n').gsub('"', '\"')
-  ['mrb_load_nstring(mrb, "' + c_str + '", ' + "#{size});",
-   'check_exc(mrb);',
+  [ "/* #{rb_filename} */",
+    'mrb_load_nstring(mrb, "' + c_str + '", ' + "#{size});",
+    'check_exc(mrb);',
   ].map { |s| indent + s }.join("\n")
 end
 
@@ -63,18 +64,15 @@ main(void)
   }
 EOF
 
-rb_files.each { |rbf|
-  c_code += "\n  /* #{rbf} */\n"
-  c_code += rb2c(rbf) + "\n\n"
-}
+  c_code += rb_files.map { |rbf| "\n" +  rb2c(rbf) + "\n\n" }.join
 
-c_code += <<EOF
+  c_code += <<EOF
   mrb_close(mrb);
   return 0;
 }
 EOF
 
-# puts c_code + "\n"
+puts c_code + "\n" if verbose
 
 file = cfile || Tempfile.new(['generated', '.c'])
 file.write(c_code)
