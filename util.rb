@@ -30,15 +30,27 @@ raise "bad MRUBY_SRC #{mruby_src_dir}" unless File.directory? mruby_src_dir
 mruby_inc_dir = File.join(mruby_src_dir, 'include')
 raise "bad MRUBY_SRC #{mruby_inc_dir}" unless File.directory? mruby_inc_dir
 
-def rb2c(rb_filename)
+def rb2c(rb_filename, indent: '  ')
+  c_str = File.read(rb_filename)
+  size = c_str.size
+  c_str = c_str.gsub("\n", '\n').gsub('"', '\"')
   c_str = File.read(rb_filename).gsub("\n", '\n').gsub('"', '\"')
-  'mrb_load_nstring(mrb, "' + c_str + '", ' + "#{c_str.size});\n"
+  ['mrb_load_nstring(mrb, "' + c_str + '", ' + "#{size});",
+   'if (mrb->exc) {',
+   '  mrb_value exc = mrb_obj_value(mrb->exc);',
+   '  mrb_value exc_msg = mrb_funcall(mrb, exc, "to_s", 0);',
+   '  printf("Exception: %s\n", mrb_str_to_cstr(mrb, exc_msg));',
+   '  exit(1);',
+   '}',
+  ].map { |s| indent + s }.join("\n")
 end
 
 c_code = <<EOF
 #include <stdlib.h>
 #include <mruby.h>
 #include <mruby/compile.h>
+#include <mruby/variable.h>
+#include <mruby/string.h>
 
 int
 main(void)
@@ -52,7 +64,7 @@ EOF
 
 rb_files.each { |rbf|
   c_code += "\n  /* #{rbf} */\n"
-  c_code += '  ' + rb2c(rbf) + "\n"
+  c_code += rb2c(rbf) + "\n\n"
 }
 
 c_code += <<EOF
