@@ -47,7 +47,7 @@ def rb2c(rb_filename, indent: '  ')
   c_str = File.read(rb_filename).gsub("\n", '\n').gsub('"', '\"')
   [ "/* #{rb_filename} */",
     'mrb_load_nstring(mrb, "' + c_str + '", ' + "#{size});",
-    'check_exc(mrb);',
+    "check_exc(mrb, \"#{rb_filename}\");",
   ].map { |s| indent + s }.join("\n")
 end
 
@@ -57,10 +57,15 @@ c_code = <<'EOF'
 #include <mruby/compile.h>
 #include <mruby/string.h>
 
-void check_exc(mrb_state *mrb) {
+void check_exc(mrb_state *mrb, char *filename) {
   if (mrb->exc) {
-    mrb_value exc_msg = mrb_funcall(mrb, mrb_obj_value(mrb->exc), "to_s", 0);
-    printf("Exception: %s\n", mrb_str_to_cstr(mrb, exc_msg));
+    mrb_value exc = mrb_obj_value(mrb->exc);
+    mrb_value exc_msg = mrb_funcall(mrb, exc, "to_s", 0);
+    fprintf(stderr, "ERROR in %s - %s: %s\n",
+            filename,
+            mrb_obj_classname(mrb, exc),
+            mrb_str_to_cstr(mrb, exc_msg));
+    /* mrb_print_backtrace(mrb);   # empty */
     exit(1);
   }
 }
