@@ -8,6 +8,16 @@ require 'mruby_tools'
 
 opts = MRubyTools.args(ARGV)
 outfile = opts.fetch(:outfile)
+if opts[:help]
+  puts <<EOF
+  USAGE: mrbt file1.rb file2.rb ...
+OPTIONS: -o outfile     (provide a name for the standalone executable)
+         -c generated.c (leave the specified C file on the filesystem)
+         -v             (verbose)
+EOF
+  exit
+end
+
 
 c_code = <<'EOF'
 #include <stdlib.h>

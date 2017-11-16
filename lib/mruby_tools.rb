@@ -24,6 +24,7 @@ module MRubyTools
     outfile = nil
     cfile = nil
     verbose = false
+    help = false
 
     while !argv.empty?
       arg = argv.shift
@@ -35,12 +36,15 @@ module MRubyTools
         cfile = File.open(argv.shift || 'generated.c', "w")
       elsif arg == '-v'
         verbose = true
+      elsif arg == '-h'
+        help = true
       else
         rb_files << arg
       end
     end
 
     { verbose: verbose,
+      help: help,
       cfile: cfile,
       outfile: outfile || 'outfile',
       rb_files: rb_files }
