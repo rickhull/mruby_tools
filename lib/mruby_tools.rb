@@ -97,7 +97,7 @@ EOF
       end
     end
 
-    c_file ||= Tempfile.new(['generated', '.c'])
+    c_file ||= Tempfile.new(['mrbt-', '.c'])
 
     { verbose: verbose,
       help: help,
