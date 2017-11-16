@@ -15,6 +15,8 @@ Gem::Specification.new do |s|
     s.files += Dir[File.join(dir, '**', '*.rb')]
   }
 
+  s.executables << 'mrbt'
+
   s.add_development_dependency "rake", "~> 0"
   s.add_development_dependency "buildar", "~> 3.0"
 #  s.add_development_dependency "minitest", "~> 5.0"
