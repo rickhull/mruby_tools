@@ -7,24 +7,15 @@ require 'mruby_tools'
 #  possibly: file1.rb -o outfile file2.rb -c generated.c
 
 opts = MRubyTools.args(ARGV)
-if opts[:help]
-  puts <<EOF
-  USAGE: mrbt file1.rb file2.rb ...
-OPTIONS: -o outfile     (provide a name for the standalone executable)
-         -c generated.c (leave the specified C file on the filesystem)
-         -v             (verbose)
-EOF
-  exit
-end
+MRubyTools.usage if opts[:help]
 
-out_file = opts.fetch(:out_file)
 rb_files = opts.fetch(:rb_files)
-c_file = opts.fetch(:c_file)
-warn "no .rb files provided" if rb_files.empty?
-
+MRubyTools.usage("no .rb files provided") if rb_files.empty?
 c_code = MRubyTools.c_wrapper(rb_files)
 puts c_code + "\n" if opts[:verbose]
 
+out_file = opts.fetch(:out_file)
+c_file = opts.fetch(:c_file)
 c_file.write(c_code)
 c_file.close
 

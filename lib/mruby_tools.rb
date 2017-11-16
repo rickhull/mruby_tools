@@ -62,6 +62,17 @@ EOF
     mruby_src_dir
   end
 
+  def self.usage(msg = nil)
+    puts <<EOF
+  USAGE: mrbt file1.rb file2.rb ...
+OPTIONS: -o outfile     (provide a name for the standalone executable)
+         -c generated.c (leave the specified C file on the filesystem)
+         -v             (verbose)
+EOF
+    warn "  ERROR: #{msg}" if msg
+    exit
+  end
+
   def self.args(argv = ARGV)
     rb_files = []
     out_file = nil
