@@ -7,7 +7,6 @@ require 'mruby_tools'
 #  possibly: file1.rb -o outfile file2.rb -c generated.c
 
 opts = MRubyTools.args(ARGV)
-outfile = opts.fetch(:outfile)
 if opts[:help]
   puts <<EOF
   USAGE: mrbt file1.rb file2.rb ...
@@ -18,58 +17,23 @@ EOF
   exit
 end
 
+out_file = opts.fetch(:out_file)
+rb_files = opts.fetch(:rb_files)
+c_file = opts.fetch(:c_file)
+warn "no .rb files provided" if rb_files.empty?
 
-c_code = <<'EOF'
-#include <stdlib.h>
-#include <mruby.h>
-#include <mruby/compile.h>
-#include <mruby/string.h>
-
-void check_exc(mrb_state *mrb, char *filename) {
-  if (mrb->exc) {
-    mrb_value exc = mrb_obj_value(mrb->exc);
-    mrb_value exc_msg = mrb_funcall(mrb, exc, "to_s", 0);
-    fprintf(stderr, "ERROR in %s - %s: %s\n",
-            filename,
-            mrb_obj_classname(mrb, exc),
-            mrb_str_to_cstr(mrb, exc_msg));
-    /* mrb_print_backtrace(mrb);   # empty */
-    exit(1);
-  }
-}
-
-int
-main(void)
-{
-  mrb_state *mrb = mrb_open();
-  if (!mrb) {
-    printf("mrb problem");
-    exit(1);
-  }
-EOF
-
-c_code += opts.fetch(:rb_files).map { |rbf|
-  "\n" +  MRubyTools.rb2c(rbf) + "\n\n"
-}.join
-
-  c_code += <<EOF
-  mrb_close(mrb);
-  return 0;
-}
-EOF
-
+c_code = MRubyTools.c_wrapper(rb_files)
 puts c_code + "\n" if opts[:verbose]
 
-file = opts[:cfile] || Tempfile.new(['generated', '.c'])
-file.write(c_code)
-file.close
+c_file.write(c_code)
+c_file.close
 
 msd = MRubyTools.mruby_src_dir
 
 gcc_args = [
-  '-std=c99', "-I", File.join(msd, 'include'), file.path, "-o", outfile,
+  '-std=c99', "-I", File.join(msd, 'include'), c_file.path, "-o", out_file,
   File.join(msd, 'build', 'host', 'lib', 'libmruby.a'), '-lm',
 ]
 
 puts "compiling..."
-puts "created binary executable: #{outfile}" if system('gcc', *gcc_args)
+puts "created binary executable: #{out_file}" if system('gcc', *gcc_args)
