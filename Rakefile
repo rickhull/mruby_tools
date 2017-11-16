@@ -5,6 +5,16 @@ Rake::TestTask.new :test do |t|
   t.warning = true
 end
 
+desc "Run timed_simplex example"
+task :timed_simplex do |t|
+  ruby "-Ilib bin/mrbt examples/timer.rb examples/simplex.rb " +
+     "examples/driver.rb -o examples/timed_simplex -v"
+end
+
+desc "Run examples"
+task examples: [:timed_simplex]
+
+task default: [:test, :examples]
 
 #
 # METRICS
