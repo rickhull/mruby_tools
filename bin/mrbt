@@ -18,6 +18,7 @@ out_file = opts.fetch(:out_file)
 c_file = opts.fetch(:c_file)
 c_file.write(c_code)
 c_file.close
+puts "generated #{c_file.path}" if opts[:verbose]
 
 msd = MRubyTools.mruby_src_dir
 
