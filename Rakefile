@@ -32,7 +32,11 @@ task :hello_world do
   args = ["examples/hello_world.rb", "-o", outfile]
   args << '-v' if @verbose
   mrbt *args
-  runout outfile
+  begin
+    runout outfile
+  ensure
+    File.unlink outfile unless @verbose
+  end
 end
 
 desc "Run timed_simplex example"
@@ -42,7 +46,11 @@ task :timed_simplex do
           '-o', outfile]
   args << '-v' if @verbose
   mrbt *args
-  runout outfile
+  begin
+    runout outfile
+  ensure
+    File.unlink outfile unless @verbose
+  end
 end
 
 desc "Run raise example"
@@ -51,7 +59,11 @@ task :raise_exception do
   args = ["examples/hello_world.rb", "examples/raise.rb", "-o", outfile]
   args << '-v' if @verbose
   mrbt *args
-  runout outfile
+  begin
+    runout outfile
+  ensure
+    File.unlink outfile unless @verbose
+  end
 end
 
 desc "Run examples"
