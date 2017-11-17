@@ -53,13 +53,15 @@ EOF
     ].map { |s| indent + s }.join("\n")
   end
 
-  def self.mruby_src_dir(env_var = 'MRUBY_SRC')
-    mruby_src_dir = ENV[env_var]
-    raise "env: MRUBY_SRC is required" unless mruby_src_dir
-    raise "bad MRUBY_SRC #{mruby_src_dir}" unless File.directory? mruby_src_dir
-    mruby_inc_dir = File.join(mruby_src_dir, 'include')
-    raise "bad MRUBY_SRC #{mruby_inc_dir}" unless File.directory? mruby_inc_dir
-    mruby_src_dir
+  def self.mruby_src_dir(path = nil)
+    msd = path || ENV['MRUBY_SRC'] || raise("env: MRUBY_SRC required")
+    inc_path = File.join(msd, 'include').tap { |p|
+      raise "can't find #{p}" unless File.directory? p
+    }
+    ar_path = File.join(msd, 'build', 'host', 'lib', 'libmruby.a').tap { |p|
+      raise "can't find #{p}" unless File.readable? p
+    }
+    return inc_path, ar_path
   end
 
   def self.usage(msg = nil)
@@ -77,6 +79,7 @@ EOF
     rb_files = []
     out_file = nil
     c_file = nil
+    mruby_src_dir = nil
     verbose = false
     help = false
 
@@ -92,6 +95,9 @@ EOF
         verbose = true
       elsif arg == '-h'
         help = true
+      elsif arg == '-m'
+        mruby_src_dir = argv.shift
+        raise "no mruby_src_dir provided with -m" unless mruby_src_dir
       else
         rb_files << arg
       end
@@ -103,6 +109,7 @@ EOF
       help: help,
       c_file: c_file,
       out_file: out_file || 'outfile',
-      rb_files: rb_files }
+      rb_files: rb_files,
+      mruby_src_dir: mruby_src_dir }
   end
 end

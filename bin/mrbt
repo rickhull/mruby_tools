@@ -11,21 +11,20 @@ MRubyTools.usage if opts[:help]
 
 rb_files = opts.fetch(:rb_files)
 MRubyTools.usage("no .rb files provided") if rb_files.empty?
+
 c_code = MRubyTools.c_wrapper(rb_files)
 puts c_code + "\n" if opts[:verbose]
 
-out_file = opts.fetch(:out_file)
 c_file = opts.fetch(:c_file)
 c_file.write(c_code)
 c_file.close
 puts "generated #{c_file.path}" if opts[:verbose]
 
-msd = MRubyTools.mruby_src_dir
+inc_path, ar_path = MRubyTools.mruby_src_dir(opts[:mruby_src_dir])
+out_file = opts.fetch(:out_file)
 
-gcc_args = [
-  '-std=c99', "-I", File.join(msd, 'include'), c_file.path, "-o", out_file,
-  File.join(msd, 'build', 'host', 'lib', 'libmruby.a'), '-lm',
-]
+gcc_args =
+  ['-std=c99', "-I", inc_path, c_file.path, "-o", out_file, ar_path, '-lm']
 
 puts "compiling..."
 puts "created binary executable: #{out_file}" if system('gcc', *gcc_args)

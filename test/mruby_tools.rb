@@ -36,11 +36,13 @@ describe MRubyTools do
       }
       unless candidates.empty?
         latest = File.expand_path('..', candidates.last)
-        key = 'TESTING_MRUBY_SRC_DIR'
-        ENV[key] = latest
-        dir = MRubyTools.mruby_src_dir(key)
-        File.directory?(dir).must_equal true
-        File.directory?(File.join(dir, 'include')).must_equal true
+        inc_path, ar_path = MRubyTools.mruby_src_dir(latest)
+        inc_path.must_be_kind_of String
+        inc_path.must_match %r{include}
+        File.directory?(inc_path).must_equal true
+        ar_path.must_be_kind_of String
+        ar_path.must_match %r{libmruby.a}
+        File.readable?(ar_path).must_equal true
       end
     end
 
