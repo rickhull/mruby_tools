@@ -7,4 +7,4 @@ rvm:
 #  - ruby-head
   - jruby-9.1.9
 install: gem install minitest
-script: rake
+script: rake test
