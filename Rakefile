@@ -5,14 +5,57 @@ Rake::TestTask.new :test do |t|
   t.warning = true
 end
 
+@verbose = false
+
+def mrbt *args
+  ruby '-Ilib', 'bin/mrbt', *args
+end
+
+def runout outfile
+  if @verbose
+    puts
+    sh "file", outfile
+    puts
+    sh "stat", outfile
+    puts
+  end
+  sh outfile
+end
+
+task :verbose do
+  @verbose = true
+end
+
+desc "Run hello_world example"
+task :hello_world do
+  outfile = "examples/hello_world"
+  args = ["examples/hello_world.rb", "-o", outfile]
+  args << '-v' if @verbose
+  mrbt *args
+  runout outfile
+end
+
 desc "Run timed_simplex example"
-task :timed_simplex do |t|
-  ruby "-Ilib bin/mrbt examples/timer.rb examples/simplex.rb " +
-     "examples/driver.rb -o examples/timed_simplex -v"
+task :timed_simplex do
+  outfile = "examples/timed_simplex"
+  args = ['examples/timer.rb', 'examples/simplex.rb', 'examples/driver.rb',
+          '-o', outfile]
+  args << '-v' if @verbose
+  mrbt *args
+  runout outfile
+end
+
+desc "Run raise example"
+task :raise_exception do
+  outfile = "examples/raise"
+  args = ["examples/hello_world.rb", "examples/raise.rb", "-o", outfile]
+  args << '-v' if @verbose
+  mrbt *args
+  runout outfile
 end
 
 desc "Run examples"
-task examples: [:timed_simplex]
+task examples: [:hello_world, :timed_simplex]
 
 task default: [:test, :examples]
 
