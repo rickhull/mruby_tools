@@ -7,8 +7,35 @@ class MRubyTools
   MRUBY_URL = "https://github.com/mruby/mruby/archive/#{MRUBY_VERSION}.tar.gz"
   MRUBY_DIR = File.expand_path("../mruby-#{MRUBY_VERSION}", __dir__)
 
-  def self.c_wrapper(rb_files)
-    c_code = <<'EOF'
+  def self.inc_path(mruby_dir = MRUBY_DIR)
+    File.join(mruby_dir, 'include')
+  end
+
+  def self.ar_path(mruby_dir = MRUBY_DIR)
+    File.join(mruby_dir, 'build', 'host', 'lib', 'libmruby.a')
+  end
+
+  attr_reader :mruby_dir, :mruby_inc, :mruby_ar
+
+  def initialize(mruby_dir = nil)
+    @mruby_dir = mruby_dir || MRUBY_DIR
+    @mruby_inc = self.class.inc_path(@mruby_dir)
+    raise(MRubyNotFound, @mruby_inc) unless File.directory? @mruby_inc
+    @mruby_ar = self.class.ar_path(@mruby_dir)
+    raise(MRubyNotFound, @mruby_ar) unless File.readable? @mruby_ar
+  end
+
+  def gcc_args(c_file, out_file)
+    ['-std=c99', "-I", @mruby_inc, c_file, "-o", out_file, @mruby_ar, '-lm']
+  end
+
+  def compile(c_file, out_file)
+    system('gcc', *self.gcc_args(c_file, out_file))
+  end
+
+  module C
+    def self.wrapper(rb_files)
+      c_code = <<'EOF'
 #include <stdlib.h>
 #include <mruby.h>
 #include <mruby/compile.h>
@@ -36,53 +63,28 @@ main(void)
     exit(1);
   }
 EOF
-    c_code += rb_files.map { |rbf|
-      "\n" + self.rb2c(rbf) + "\n\n"
-    }.join
+      c_code += rb_files.map { |rbf|
+        "\n" + self.slurp_rb(rbf) + "\n\n"
+      }.join
 
-    c_code += <<EOF
+      c_code += <<EOF
   mrb_close(mrb);
   return 0;
 }
 EOF
-    c_code
-  end
+      c_code
+    end
 
-  def self.rb2c(rb_filename, indent: '  ')
-    c_str = File.read(rb_filename)
-    size = c_str.size
-    c_str = c_str.gsub("\n", '\n').gsub('"', '\"')
-    c_str = File.read(rb_filename).gsub("\n", '\n').gsub('"', '\"')
-    [ "/* #{rb_filename} */",
-      'mrb_load_nstring(mrb, "' + c_str + '", ' + "#{size});",
-      "check_exc(mrb, \"#{rb_filename}\");",
-    ].map { |s| indent + s }.join("\n")
-  end
-
-  def self.inc_path(mruby_dir = MRUBY_DIR)
-    File.join(mruby_dir, 'include')
-  end
-
-  def self.ar_path(mruby_dir = MRUBY_DIR)
-    File.join(mruby_dir, 'build', 'host', 'lib', 'libmruby.a')
-  end
-
-  attr_reader :mruby_dir, :mruby_inc, :mruby_ar
-
-  def initialize(mruby_dir = nil)
-    @mruby_dir = mruby_dir || MRUBY_DIR
-    @mruby_inc = self.class.inc_path(@mruby_dir)
-    raise(MRubyNotFound, @mruby_inc) unless File.directory? @mruby_inc
-    @mruby_ar = self.class.ar_path(@mruby_dir)
-    raise(MRubyNotFound, @mruby_ar) unless File.readable? @mruby_ar
-  end
-
-  def gcc_args(c_file, out_file)
-    ['-std=c99', "-I", @mruby_inc, c_file, "-o", out_file, @mruby_ar, '-lm']
-  end
-
-  def compile(c_file, out_file)
-    system('gcc', *self.gcc_args(c_file, out_file))
+    def self.slurp_rb(rb_filename, indent: '  ')
+      c_str = File.read(rb_filename)
+      size = c_str.size
+      c_str = c_str.gsub("\n", '\n').gsub('"', '\"')
+      c_str = File.read(rb_filename).gsub("\n", '\n').gsub('"', '\"')
+      [ "/* #{rb_filename} */",
+        'mrb_load_nstring(mrb, "' + c_str + '", ' + "#{size});",
+        "check_exc(mrb, \"#{rb_filename}\");",
+      ].map { |s| indent + s }.join("\n")
+    end
   end
 
   module CLI

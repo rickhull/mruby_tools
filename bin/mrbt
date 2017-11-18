@@ -9,25 +9,25 @@ require 'mruby_tools'
 opts = MRubyTools::CLI.args(ARGV)
 MRubyTools::CLI.usage if opts[:help]
 
-rb_files = opts.fetch(:rb_files)
-MRubyTools::CLI.usage("no .rb files provided") if rb_files.empty?
-
-c_code = MRubyTools.c_wrapper(rb_files)
-puts c_code + "\n" if opts[:verbose]
-
-c_file = opts.fetch(:c_file)
-c_file.write(c_code)
-c_file.close
-puts "generated #{c_file.path}" if opts[:verbose]
-
 begin
   tool = MRubyTools.new(opts[:mruby_dir] || ENV['MRUBY_DIR'])
 rescue MRubyTools::MRubyNotFound => f
   warn "can't find #{f}"
   warn "try -m flag or setting MRUBY_DIR environment variable"
   warn "try `rake make` to install to default location"
-  MRubyTools::CLI.usage("can't find #{f}")
+  exit 1
 end
+
+rb_files = opts.fetch(:rb_files)
+MRubyTools::CLI.usage("no .rb files provided") if rb_files.empty?
+
+c_code = MRubyTools::C.wrapper(rb_files)
+puts c_code + "\n" if opts[:verbose]
+
+c_file = opts.fetch(:c_file)
+c_file.write(c_code)
+c_file.close
+puts "generated #{c_file.path}" if opts[:verbose]
 
 out_file = opts.fetch(:out_file)
 puts "compiling..."

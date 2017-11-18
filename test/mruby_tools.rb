@@ -2,31 +2,6 @@ require 'mruby_tools'
 require 'minitest/autorun'
 
 describe MRubyTools do
-  describe "c_wrapper" do
-    it "must return a string of mruby C code" do
-      [[], [__FILE__]].each { |rb_files|
-        str = MRubyTools.c_wrapper(rb_files)
-        str.must_be_kind_of String
-        str.wont_be_empty
-        str.must_match(/main\(void\)/)
-        str.must_match(/return/)
-        str.must_match(/exit/)
-        str.must_match(/mruby/)
-        str.must_match(/mrb/)
-      }
-    end
-  end
-
-  describe "rb2c" do
-    it "must inject the contents of a ruby file into mrb_load_string()" do
-      str = MRubyTools.rb2c(__FILE__)
-      str.must_be_kind_of String
-      str.wont_be_empty
-      str.must_match(/mrb_load_n?string\(/)
-      str.must_match(/exc/)
-    end
-  end
-
   describe "new instance" do
     if File.directory? MRubyTools::MRUBY_DIR
       it "must instantiate properly with MRUBY_DIR" do
@@ -44,6 +19,33 @@ describe MRubyTools do
     else
       it "must raise without a valid MRUBY_DIR" do
         proc { MRubyTools.new }.must_raise MRubyTools::MRubyNotFound
+      end
+    end
+  end
+
+  describe MRubyTools::C do
+    describe "wrapper" do
+      it "must return a string of mruby C code" do
+        [[], [__FILE__]].each { |rb_files|
+          str = MRubyTools::C.wrapper(rb_files)
+          str.must_be_kind_of String
+          str.wont_be_empty
+          str.must_match(/main\(void\)/)
+          str.must_match(/return/)
+          str.must_match(/exit/)
+          str.must_match(/mruby/)
+          str.must_match(/mrb/)
+        }
+      end
+    end
+
+    describe "slurp_rb" do
+      it "must inject the contents of a ruby file into mrb_load_string()" do
+        str = MRubyTools::C.slurp_rb(__FILE__)
+        str.must_be_kind_of String
+        str.wont_be_empty
+        str.must_match(/mrb_load_n?string\(/)
+        str.must_match(/exc/)
       end
     end
   end
