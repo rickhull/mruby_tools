@@ -46,7 +46,16 @@ $ gem install mruby_tools
 Now, `mrbt` may be used.  It will need to know where to find the mruby_dir,
 so specify it with the `-m` flag or `MRUBY_DIR` environment variable.  This
 gem will look for mruby_dir at `$gem_dir/mruby-1.3.0` by default, so you can
-symlink or copy your existing mruby install at that location.
+symlink or copy your existing mruby install at that location.  You can use
+`gem which mruby_tools` to find $gem_dir.
+
+Having located $gem_dir, you can also proceed to build mruby within it:
+
+```
+$ cd $gem_dir
+
+$ rake hello_world  # this will download and build mruby using curl, tar, make
+```
 
 ### `git clone` Install
 
