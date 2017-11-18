@@ -1,9 +1,31 @@
 require 'rake/testtask'
+require_relative './lib/mruby_tools.rb'
 
 Rake::TestTask.new :test do |t|
   t.pattern = "test/*.rb"
   t.warning = true
 end
+
+#
+# GET / SETUP MRUBY
+#
+
+makefile = File.join(MRubyTools::MRUBY_DIR, 'Makefile')
+ar_path = MRubyTools.ar_path
+
+file makefile do
+  sh "curl -L #{MRubyTools::MRUBY_URL} | tar xz"
+end
+
+file ar_path => makefile do
+  Dir.chdir MRubyTools::MRUBY_DIR do
+    sh "make"
+  end
+end
+
+#
+# mrbt EXAMPLES
+#
 
 @verbose = false
 
@@ -27,7 +49,7 @@ task :verbose do
 end
 
 desc "Run hello_world example"
-task :hello_world do
+task hello_world: ar_path do
   outfile = "examples/hello_world"
   args = ["examples/hello_world.rb", "-o", outfile]
   args << '-v' if @verbose
@@ -40,7 +62,7 @@ task :hello_world do
 end
 
 desc "Run timed_simplex example"
-task :timed_simplex do
+task timed_simplex: ar_path do
   outfile = "examples/timed_simplex"
   args = ['examples/timer.rb', 'examples/simplex.rb', 'examples/driver.rb',
           '-o', outfile]
@@ -54,7 +76,7 @@ task :timed_simplex do
 end
 
 desc "Run raise example"
-task :raise_exception do
+task raise_exception: ar_path do
   outfile = "examples/raise"
   args = ["examples/hello_world.rb", "examples/raise.rb", "-o", outfile]
   args << '-v' if @verbose

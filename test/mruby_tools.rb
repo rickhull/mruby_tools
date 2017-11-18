@@ -27,44 +27,45 @@ describe MRubyTools do
     end
   end
 
-  describe "mruby_src_dir" do
-    it "must confirm the specified mruby source on the filesystem" do
-      candidates = []
-      %w{src git}.each { |subdir|
-        candidates +=
-          Dir[File.join(ENV['HOME'], subdir, 'mruby-1.*', 'include')]
-      }
-      unless candidates.empty?
-        latest = File.expand_path('..', candidates.last)
-        inc_path, ar_path = MRubyTools.mruby_src_dir(latest)
-        inc_path.must_be_kind_of String
-        inc_path.must_match %r{include}
-        File.directory?(inc_path).must_equal true
-        ar_path.must_be_kind_of String
-        ar_path.must_match %r{libmruby.a}
-        File.readable?(ar_path).must_equal true
+  describe "new instance" do
+    if File.directory? MRubyTools::MRUBY_DIR
+      it "must instantiate properly with MRUBY_DIR" do
+        t = MRubyTools.new
+        t.must_be_kind_of MRubyTools
+        i = t.mruby_inc
+        i.must_be_kind_of String
+        i.must_match %r{include}
+        File.directory?(i).must_equal true
+        a = t.mruby_ar
+        a.must_be_kind_of String
+        a.must_match %r{libmruby.a}
+        File.readable?(a).must_equal true
       end
-    end
-
-    it "must accept the dir specification from the environment" do
-      proc { MRubyTools.mruby_src_dir('bad key') }.must_raise Exception
+    else
+      it "must raise without a valid MRUBY_DIR" do
+        proc { MRubyTools.new }.must_raise MRubyTools::MRubyNotFound
+      end
     end
   end
 
-  describe "args" do
-    it "must provide a hash with expected keys" do
-      h = MRubyTools.args([])
-      h.must_be_kind_of Hash
-      [:verbose, :help, :c_file, :out_file, :rb_files].each { |key|
-        h.key?(key).must_equal true
-      }
-      h[:verbose].must_equal false
-      h[:help].must_equal false
-      [Tempfile, File].must_include h[:c_file].class
-      h[:out_file].must_be_kind_of String
-      h[:out_file].wont_be_empty
-      h[:rb_files].must_be_kind_of Array
-      h[:rb_files].must_be_empty
+  describe MRubyTools::CLI do
+    describe "args" do
+      it "must provide a hash with expected keys" do
+        h = MRubyTools::CLI.args([])
+        h.must_be_kind_of Hash
+        [:verbose, :help, :c_file,
+         :out_file, :rb_files, :mruby_dir].each { |key|
+          h.key?(key).must_equal true
+        }
+        h[:verbose].must_equal false
+        h[:help].must_equal false
+        [Tempfile, File].must_include h[:c_file].class
+        h[:out_file].must_be_kind_of String
+        h[:out_file].wont_be_empty
+        h[:rb_files].must_be_kind_of Array
+        h[:rb_files].must_be_empty
+        h[:mruby_dir].must_be_nil
+      end
     end
   end
 end

@@ -1,6 +1,12 @@
 require 'tempfile'
 
-module MRubyTools
+class MRubyTools
+  class MRubyNotFound < RuntimeError; end
+
+  MRUBY_VERSION = "1.3.0"
+  MRUBY_URL = "https://github.com/mruby/mruby/archive/#{MRUBY_VERSION}.tar.gz"
+  MRUBY_DIR = File.expand_path("../mruby-#{MRUBY_VERSION}", __dir__)
+
   def self.c_wrapper(rb_files)
     c_code = <<'EOF'
 #include <stdlib.h>
@@ -53,63 +59,77 @@ EOF
     ].map { |s| indent + s }.join("\n")
   end
 
-  def self.mruby_src_dir(path = nil)
-    msd = path || ENV['MRUBY_SRC'] || raise("env: MRUBY_SRC required")
-    inc_path = File.join(msd, 'include').tap { |p|
-      raise "can't find #{p}" unless File.directory? p
-    }
-    ar_path = File.join(msd, 'build', 'host', 'lib', 'libmruby.a').tap { |p|
-      raise "can't find #{p}" unless File.readable? p
-    }
-    return inc_path, ar_path
+  def self.inc_path(mruby_dir = MRUBY_DIR)
+    File.join(mruby_dir, 'include')
   end
 
-  def self.usage(msg = nil)
-    puts <<EOF
+  def self.ar_path(mruby_dir = MRUBY_DIR)
+    File.join(mruby_dir, 'build', 'host', 'lib', 'libmruby.a')
+  end
+
+  attr_reader :mruby_dir, :mruby_inc, :mruby_ar
+
+  def initialize(mruby_dir = nil)
+    @mruby_dir = mruby_dir || MRUBY_DIR
+    @mruby_inc = self.class.inc_path(@mruby_dir)
+    raise(MRubyNotFound, @mruby_inc) unless File.directory? @mruby_inc
+    @mruby_ar = self.class.ar_path(@mruby_dir)
+    raise(MRubyNotFound, @mruby_ar) unless File.readable? @mruby_ar
+  end
+
+  def gcc_args(c_file, out_file)
+    ['-std=c99', "-I", @mruby_inc, c_file, "-o", out_file, @mruby_ar, '-lm']
+  end
+
+  module CLI
+    def self.usage(msg = nil)
+      puts <<EOF
   USAGE: mrbt file1.rb file2.rb ...
 OPTIONS: -o outfile     (provide a name for the standalone executable)
          -c generated.c (leave the specified C file on the filesystem)
+         -m mruby_dir   (provide the dir for mruby src)
          -v             (verbose)
 EOF
-    warn "  ERROR: #{msg}" if msg
-    exit
-  end
-
-  def self.args(argv = ARGV)
-    rb_files = []
-    out_file = nil
-    c_file = nil
-    mruby_src_dir = nil
-    verbose = false
-    help = false
-
-    while !argv.empty?
-      arg = argv.shift
-      if arg == '-o'
-        out_file = argv.shift
-        raise "no out_file provided with -o" unless out_file
-        raise "#{out_file} is misnamed" if File.extname(out_file) == '.rb'
-      elsif arg == '-c'
-        c_file = File.open(argv.shift || 'generated.c', "w")
-      elsif arg == '-v'
-        verbose = true
-      elsif arg == '-h'
-        help = true
-      elsif arg == '-m'
-        mruby_src_dir = argv.shift
-        raise "no mruby_src_dir provided with -m" unless mruby_src_dir
-      else
-        rb_files << arg
-      end
+      warn "  ERROR: #{msg}" if msg
+      exit(msg ? 1 : 0)
     end
 
-    c_file ||= Tempfile.new(['mrbt-', '.c'])
+    def self.args(argv = ARGV)
+      rb_files = []
+      out_file = nil
+      c_file = nil
+      mruby_dir = nil
+      verbose = false
+      help = false
 
-    { verbose: verbose,
-      help: help,
-      c_file: c_file,
-      out_file: out_file || 'outfile',
-      rb_files: rb_files,
-      mruby_src_dir: mruby_src_dir }
+      while !argv.empty?
+        arg = argv.shift
+        if arg == '-o'
+          out_file = argv.shift
+          raise "no out_file provided with -o" unless out_file
+          raise "#{out_file} is misnamed" if File.extname(out_file) == '.rb'
+        elsif arg == '-c'
+          c_file = File.open(argv.shift || 'generated.c', "w")
+        elsif arg == '-v'
+          verbose = true
+        elsif arg == '-h'
+          help = true
+        elsif arg == '-m'
+          mruby_dir = argv.shift
+          raise "no mruby_dir provided with -m" unless mruby_dir
+        else
+          rb_files << arg
+        end
+      end
+
+      c_file ||= Tempfile.new(['mrbt-', '.c'])
+
+      { verbose: verbose,
+        help: help,
+        c_file: c_file,
+        out_file: out_file || 'outfile',
+        rb_files: rb_files,
+        mruby_dir: mruby_dir }
+    end
   end
 end
