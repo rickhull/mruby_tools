@@ -81,6 +81,10 @@ EOF
     ['-std=c99', "-I", @mruby_inc, c_file, "-o", out_file, @mruby_ar, '-lm']
   end
 
+  def compile(c_file, out_file)
+    system('gcc', *self.gcc_args(c_file, out_file))
+  end
+
   module CLI
     def self.usage(msg = nil)
       puts <<EOF

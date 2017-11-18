@@ -28,9 +28,12 @@ rescue MRubyTools::MRubyNotFound => f
   warn "try `rake make` to install to default location"
   MRubyTools::CLI.usage("can't find #{f}")
 end
-out_file = opts.fetch(:out_file)
 
+out_file = opts.fetch(:out_file)
 puts "compiling..."
-if system('gcc', *tool.gcc_args(c_file.path, out_file))
+if tool.compile(c_file.path, out_file)
   puts "created binary executable: #{out_file}"
+else
+  warn "FATAL: compile failed"
+  exit 1
 end
