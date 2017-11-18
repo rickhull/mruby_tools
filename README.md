@@ -25,7 +25,8 @@ already have mruby downloaded and built.  You can specify the path to mruby
 with `-m path/to/mruby_dir` or via `MRUBY_DIR` environment variable.
 
 The `git clone` install method makes it easy to use rake tasks to download and
-build mruby.  By default, mruby will be downloaded and built within this project dir.  If you are new to mruby, this is the easiest way to get started.
+build mruby.  By default, mruby will be downloaded and built within this
+project dir.  If you are new to mruby, this is the easiest way to get started.
 
 ### Rubygems Install
 
