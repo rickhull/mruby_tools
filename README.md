@@ -3,7 +3,7 @@
 [![Dependency Status](https://gemnasium.com/rickhull/mruby_tools.svg)](https://gemnasium.com/rickhull/mruby_tools)
 [![Security Status](https://hakiri.io/github/rickhull/mruby_tools/master.svg)](https://hakiri.io/github/rickhull/mruby_tools/master)
 
-# MRuby Tools
+# mruby tools
 
 This is a small gem that provides one tool at present: `mrbt`
 
@@ -20,7 +20,7 @@ There are two main ways to install: rubygems or `git clone`
 
 The rubygems method is nice because it set up `mrbt` in your PATH.  However,
 it is tough to find the Rakefile and make use of rake tasks, particularly for
-downloading and installing the MRuby source.  This method works best if you
+downloading and installing the mruby source.  This method works best if you
 already have mruby downloaded and built.  You can specify the path to mruby
 with `-m path/to/mruby_dir` or via `MRUBY_DIR` environment variable.
 
