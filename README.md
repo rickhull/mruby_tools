@@ -16,9 +16,9 @@ executable using mruby.  The .rb files must be
 
 ## Install
 
-There are two main ways to install: rubygems or `git clone`
+There are two main ways to install: *rubygems* or `git clone`
 
-The rubygems method is nice because it set up `mrbt` in your PATH.  However,
+The *rubygems* method is nice because it set up `mrbt` in your PATH.  However,
 it is tough to find the Rakefile and make use of rake tasks, particularly for
 downloading and installing the mruby source.  This method works best if you
 already have mruby downloaded and built.  You can specify the path to mruby
@@ -28,7 +28,7 @@ The `git clone` install method makes it easy to use rake tasks to download and
 build mruby.  By default, mruby will be downloaded and built within this
 project dir.  If you are new to mruby, this is the easiest way to get started.
 
-### Rubygems Install
+### *rubygems* Install
 
 Prerequisites:
 
@@ -87,7 +87,7 @@ executed with the customary output shown.
 
 ## Usage
 
-### Rubygems install
+### *rubygems* install
 
 ```
 $ export MRUBY_DIR=~/src/mruby-1.3.0    # or wherever
