@@ -8,8 +8,8 @@
 This is a small gem that provides one tool at present: `mrbt`
 
 `mrbt` accepts any number of .rb files and "compiles" them into a standalone
-executable using mruby.  The .rb files must be mruby-compatible
-[(roughly equivalent to MRI v1.9)](https://github.com/mruby/mruby/blob/master/doc/limitations.md).
+executable using mruby.  The .rb files must be
+[mruby-compatible](https://github.com/mruby/mruby/blob/master/doc/limitations.md) (roughly equivalent to MRI v1.9).
 
 `mrbt` requires `gcc` as well as the mruby source code, with at least
 `build/host/lib/libmruby.a` having been built.
