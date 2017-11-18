@@ -5,28 +5,82 @@
 
 # MRuby Tools
 
-This is a small gem that provides one tool: `mrbt`
+This is a small gem that provides one tool at present: `mrbt`
 
 `mrbt` accepts any number of .rb files and "compiles" them into a standalone
-executable using mruby.  The .rb files must be mruby-compatible (roughly
-equivalent to MRI v1.9).
+executable using mruby.  The .rb files must be mruby-compatible
+[(roughly equivalent to MRI v1.9)](https://github.com/mruby/mruby/blob/master/doc/limitations.md).
+
+`mrbt` requires `gcc` as well as the mruby source code, with at least
+`build/host/lib/libmruby.a` having been built.
 
 ## Install
+
+There are two main ways to install: rubygems or `git clone`
+
+The rubygems method is nice because it set up `mrbt` in your PATH.  However,
+it is tough to find the Rakefile and make use of rake tasks, particularly for
+downloading and installing the MRuby source.  This method works best if you
+already have mruby downloaded and built.  You can specify the path to mruby
+with `-m path/to/mruby_dir` or via `MRUBY_DIR` environment variable.
+
+The `git clone` install method makes it easy to use rake tasks to download and
+build mruby.  By default, mruby will be downloaded and built within this project dir.  If you are new to mruby, this is the easiest way to get started.
+
+### Rubygems Install
 
 Prerequisites:
 
 * gcc
-* MRuby source downloaded
-* mruby/build/host/lib/libmruby.a built
+* make
+* bison
+* ar
+* mruby_dir containing mruby source
+* mruby_dir/build/host/lib/libmruby.a built
 
 ```
 $ gem install mruby_tools
 ```
 
-## Usage
+Now, `mrbt` may be used.  It will need to know where to find the mruby_dir,
+so specify it with the `-m` flag or `MRUBY_DIR` environment variable.  This
+gem will look for mruby_dir at `$gem_dir/mruby-1.3.0` by default, so you can
+symlink or copy your existing mruby install at that location.
+
+### `git clone` Install
+
+Prerequisites:
+
+* gcc
+* make
+* bison
+* ar
+* curl
+* tar
+* rake
 
 ```
-$ export MRUBY_SRC=~/src/mruby-1.3.0    # or wherever
+$ git clone https://github.com/rickhull/mruby_tools.git
+
+$ cd mruby_tools
+
+$ rake hello_world
+```
+
+This will download and build mruby in the default location
+`mruby_tools/mruby-1.3.0`.  If the build fails, you can go to this dir and
+troubleshoot by running `make` or `./minirake`.
+
+The rake command will proceed to "compiling" `examples/hello_world.rb` to
+a standalone binary executable `examples/hello_world`, which will then be
+executed with the customary output shown.
+
+## Usage
+
+### Rubygems install
+
+```
+$ export MRUBY_DIR=~/src/mruby-1.3.0    # or wherever
 $ mrbt file1.rb file2.rb                # etc.
 ```
 
@@ -34,6 +88,15 @@ With no additional options, `mrbt` will inject the contents of file1.rb and
 file2.rb into C strings, to be loaded with mrb_load_nstring(), written to a
 Tempfile.  `mrbt` then compiles the generated .c file using GCC and writes
 a standalone executable (around 1.5 MB for "hello world").
+
+### `git clone` install
+
+Without the gem installed, you will have to execute `mrbt` by providing its
+path as well as adding the local `lib/` to ruby's load path:
+
+```
+$ ruby -Ilib bin/mrbt file1.rb file2.rb  # etc.
+```
 
 ## Examples
 
