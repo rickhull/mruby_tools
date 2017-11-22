@@ -1,91 +1,109 @@
 require 'rake/testtask'
 require_relative './lib/mruby_tools.rb'
 
-Rake::TestTask.new :test do |t|
-  t.pattern = "test/*.rb"
-  t.warning = true
-end
-
 #
 # GET / SETUP MRUBY
 #
 
-makefile = File.join(MRubyTools::MRUBY_DIR, 'Makefile')
-ar_path = MRubyTools.ar_path
+mrb = MRubyTools.new
 
-file makefile do
-  sh "curl -L #{MRubyTools::MRUBY_URL} | tar xz"
-end
-
-file ar_path => makefile do
-  Dir.chdir MRubyTools::MRUBY_DIR do
-    sh "make"
+file mrb.ar_path do
+  if mrb.src?
+    Dir.chdir MRubyTools.mruby_dir do
+      sh "make"
+    end
   end
+  mrb.validate!
 end
+
 
 #
-# mrbt EXAMPLES
+# lib/mruby_tools tests
+#
+
+Rake::TestTask.new(test: mrb.ar_path) do |t|
+  t.pattern = "test/*.rb"
+  t.warning = true
+end
+
+
+#
+# run mrbt via `rake mrbt`
 #
 
 @verbose = false
-
-def mrbt *args
-  ruby '-Ilib', 'bin/mrbt', *args
-end
-
-def runout outfile
-  if @verbose
-    puts
-    sh "file", outfile
-    puts
-    sh "stat", outfile
-    puts
-  end
-  sh outfile
-end
 
 task :verbose do
   @verbose = true
 end
 
-desc "Run hello_world example"
-task hello_world: ar_path do
-  outfile = "examples/hello_world"
-  args = ["examples/hello_world.rb", "-o", outfile]
-  args << '-v' if @verbose
-  mrbt *args
-  begin
-    runout outfile
-  ensure
-    File.unlink outfile unless @verbose
+def mrbt *args
+  args.unshift('-v') if @verbose and !args.include?('-v')
+  ruby '-Ilib', 'bin/mrbt', *args
+end
+
+task mrbt: mrb.ar_path do
+  # consume ARGV
+  args = []
+  found_mrbt = false
+  while !ARGV.empty?
+    arg = ARGV.shift
+    # skip all args until we reach 'mrbt'
+    if found_mrbt
+      args << arg
+      next
+    end
+    found_mrbt = true if arg == 'mrbt'
   end
+  begin
+    mrbt *args
+  rescue RuntimeError
+    exit 1
+  end
+end
+
+
+#
+# mrbt EXAMPLES
+#
+
+def run_clean outfile, clean: true
+  begin
+    if @verbose
+      puts
+      sh "file", outfile
+      puts
+      sh "stat", outfile
+      puts
+    end
+    sh outfile
+  ensure
+    if clean
+      File.unlink outfile unless @verbose
+    end
+  end
+end
+
+desc "Run hello_world example"
+task hello_world: mrb.ar_path do
+  outfile = "examples/hello_world"
+  mrbt "examples/hello_world.rb", "-o", outfile
+  run_clean outfile
 end
 
 desc "Run timed_simplex example"
-task timed_simplex: ar_path do
+task timed_simplex: mrb.ar_path do
   outfile = "examples/timed_simplex"
-  args = ['examples/timer.rb', 'examples/simplex.rb', 'examples/driver.rb',
-          '-o', outfile]
-  args << '-v' if @verbose
-  mrbt *args
-  begin
-    runout outfile
-  ensure
-    File.unlink outfile unless @verbose
-  end
+  mrbt "examples/timer.rb", "examples/simplex.rb", "examples/driver.rb",
+       "-o", outfile
+  run_clean outfile
 end
 
 desc "Run raise example"
-task raise_exception: ar_path do
+task raise_exception: mrb.ar_path do
   outfile = "examples/raise"
-  args = ["examples/hello_world.rb", "examples/raise.rb", "-o", outfile]
-  args << '-v' if @verbose
-  mrbt *args
-  begin
-    runout outfile
-  ensure
-    File.unlink outfile unless @verbose
-  end
+  mrbt "examples/hello_world.rb", "examples/raise.rb", "-o", outfile
+  run_clean outfile
 end
 
 desc "Run examples"
