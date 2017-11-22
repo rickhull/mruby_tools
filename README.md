@@ -11,107 +11,99 @@ This is a small gem that provides one tool at present: `mrbt`
 executable using mruby.  The .rb files must be
 [mruby-compatible](https://github.com/mruby/mruby/blob/master/doc/limitations.md) (roughly equivalent to MRI v1.9).
 
-`mrbt` requires `gcc` as well as the mruby source code, with at least
-`build/host/lib/libmruby.a` having been built.
-
 ## Install
-
-There are two main ways to install: *rubygems* or `git clone`
-
-The *rubygems* method is nice because it set up `mrbt` in your PATH.  However,
-it is tough to find the Rakefile and make use of rake tasks, particularly for
-downloading and installing the mruby source.  This method works best if you
-already have mruby downloaded and built.  You can specify the path to mruby
-with `-m path/to/mruby_dir` or via `MRUBY_DIR` environment variable.
-
-The `git clone` install method makes it easy to use rake tasks to download and
-build mruby.  By default, mruby will be downloaded and built within this
-project dir.  If you are new to mruby, this is the easiest way to get started.
-
-### *rubygems* Install
-
-Prerequisites:
-
-* gcc
-* make
-* bison
-* ar
-* mruby_dir containing mruby source
-* mruby_dir/build/host/lib/libmruby.a built
-
-```
-$ gem install mruby_tools
-```
-
-Now, `mrbt` may be used.  It will need to know where to find the mruby_dir,
-so specify it with the `-m` flag or `MRUBY_DIR` environment variable.  This
-gem will look for mruby_dir at `$gem_dir/mruby-1.3.0` by default, so you can
-symlink or copy your existing mruby install at that location.  You can use
-`gem which mruby_tools` to find $gem_dir.
-
-Having located $gem_dir, you can also proceed to build mruby within it:
-
-```
-$ cd $gem_dir
-
-$ rake hello_world  # this will download and build mruby using curl, tar, make
-```
 
 ### `git clone` Install
 
 Prerequisites:
 
+* git
 * gcc
 * make
 * bison
 * ar
-* curl
-* tar
 * rake
 
 ```
-$ git clone https://github.com/rickhull/mruby_tools.git
+$ git clone --recursive https://github.com/rickhull/mruby_tools.git
 
 $ cd mruby_tools
 
 $ rake hello_world
 ```
 
-This will download and build mruby in the default location
-`mruby_tools/mruby-1.3.0`.  If the build fails, you can go to this dir and
-troubleshoot by running `make` or `./minirake`.
+This will provide mruby source via a git repo submodule and then build it to
+provide `libmruby.a`.
 
 The rake command will proceed to "compiling" `examples/hello_world.rb` to
 a standalone binary executable `examples/hello_world`, which will then be
 executed with the customary output shown.
 
-## Usage
+### *rubygems* Install
 
-### *rubygems* install
+Only use this if you have an existing mruby built and installed.  `mrbt` will
+be set up in your PATH, but you will have to specify the path to mruby
+source via `-m path/to/mruby_dir` or `MRUBY_DIR` environment variable.  You
+will not have (easy) access to rake tasks.
+
+Prerequisites:
+
+* rubygems
+* gcc
+* make
+* bison
+* ar
+* mruby_dir
+* mruby_dir/build/host/lib/libmruby.a
+
+```
+$ gem install mruby_tools
+```
+
+Now, `mrbt` may be used.  It will need to know where to find the mruby_dir,
+so specify it with the `-m` flag or `MRUBY_DIR` environment variable.
 
 ```
 $ export MRUBY_DIR=~/src/mruby-1.3.0    # or wherever
 $ mrbt file1.rb file2.rb                # etc.
 ```
 
+## Usage
+
 With no additional options, `mrbt` will inject the contents of file1.rb and
 file2.rb into C strings, to be loaded with mrb_load_nstring(), written to a
 Tempfile.  `mrbt` then compiles the generated .c file using GCC and writes
 a standalone executable (around 1.5 MB for "hello world").
 
-### `git clone` install
+### With `git clone` and `rake`
 
-Without the gem installed, you will have to execute `mrbt` by providing its
-path as well as adding the local `lib/` to ruby's load path:
+You can use `rake mrbt` to get around lacking `bin/mrbt` in your PATH.
+`bin/mrbt` will be invoked with any provided arguments passed along.  Some
+mrbt options conflict with rake options.  You can prevent rake from parsing
+arguments by placing them after ` -- `.
 
 ```
-$ ruby -Ilib bin/mrbt file1.rb file2.rb  # etc.
+$ rake mrbt -- -h
+
+$ rake mrbt examples/hello_world.rb
+
+$ rake mrbt -- examples/hello_world.rb examples/goodbye_world.rb -o adios
 ```
+
+Other useful rake tasks:
+
+* hello world - compiles and runs `examples/hello_world.rb`
+* timed_simplex - compiles and runs several files that work together
+* raise_exception - compiles and runs `examples/raise.rb`
+* examples - runs hello_world and timed_simplex
+* verbose - add verbose output, e.g. `rake verbose hello_world`
 
 ## Examples
 
 There are some example .rb files in examples/ that can be used to produce
 an executable.  Rake tasks make this easy:
+
+*Note: rake tasks are not (easily) available for the installed gem*
 
 ```
 $ rake hello_world
