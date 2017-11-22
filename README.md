@@ -5,7 +5,9 @@
 
 # mruby tools
 
-This is a small gem that provides one tool at present: `mrbt`
+This is a small gem that provides one tool at present: `mrbt`.  This is a
+**ruby gem**, not an **mruby mgem**, but it is primarily useful for working
+with **mruby**.
 
 `mrbt` accepts any number of .rb files and "compiles" them into a standalone
 executable using mruby.  The .rb files must be
@@ -24,9 +26,9 @@ manually.
 
 Prerequisites:
 
-* git
-* rake
-* build tools: gcc, make, bison, ar
+* `git`
+* `rake`
+* *build tools:* `gcc` `make` `bison` `ar`
 
 ```shell
 git clone --recursive https://github.com/rickhull/mruby_tools.git
@@ -56,10 +58,10 @@ will not have (easy) access to rake tasks.
 
 Prerequisites:
 
-* rubygems
-* build tools: gcc, make, bison, ar
-* mruby_dir
-* mruby_dir/build/host/lib/libmruby.a
+* *rubygems*
+* *build tools:* `gcc` `make` `bison` `ar`
+* *mruby_dir*
+* *mruby_dir*/build/host/lib/libmruby.a
 
 ```shell
 gem install mruby_tools
