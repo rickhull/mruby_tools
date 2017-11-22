@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'tempfile'
 require 'mruby_tools'
 
 # args like: file1.rb file2.rb -o outfile
@@ -22,9 +21,15 @@ MRubyTools::CLI.usage("no .rb files provided") if rb_files.empty?
 
 # inject a string vs create and inject bytecode
 if opts[:bytecode]
-  c_code = "fake_bytecode"
+  bc_file = 'bytecode.mrb'
+  puts "creating #{bc_file}..."
+  if mrb.mrbc rb_files, bc_file
+    c_code = MRubyTools::C.bc_wrapper(bc_file)
+  else
+    warn "FATAL: mrbc bytecode generation failed"
+    exit 1
+  end
 else
-  p rb_files
   c_code = MRubyTools::C.wrapper(rb_files)
 end
 puts c_code + "\n" if opts[:verbose]
@@ -33,11 +38,6 @@ c_file = opts.fetch(:c_file)
 c_file.write(c_code)
 c_file.close
 puts "generated #{c_file.path}" if opts[:verbose]
-
-if opts[:bytecode]
-  puts "exiting because bytecode doesn't work yet"
-  exit 0
-end
 
 out_file = opts.fetch(:out_file)
 puts "compiling..."

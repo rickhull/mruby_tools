@@ -9,12 +9,13 @@ class MRubyTools
     ENV['MRUBY_DIR'] || MRUBY_DIR
   end
 
-  attr_accessor :mruby_dir, :inc_path, :ar_path
+  attr_accessor :mruby_dir, :inc_path, :ar_path, :bin_path
 
   def initialize(mruby_dir = nil)
     @mruby_dir = mruby_dir || self.class.mruby_dir
     @inc_path = File.join(@mruby_dir, 'include')
     @ar_path = File.join(@mruby_dir, 'build', 'host', 'lib', 'libmruby.a')
+    @bin_path = File.join(@mruby_dir, 'bin')
   end
 
   def src?
@@ -28,6 +29,7 @@ class MRubyTools
   def validate!
     raise(MRubyNotFound, @inc_path) unless File.directory? @inc_path
     raise(MRubyNotFound, @ar_path) unless File.readable? @ar_path
+    raise(MRubyNotFound, @bin_path) unless File.directory? @bin_path
     self
   end
 
@@ -39,7 +41,70 @@ class MRubyTools
     system('gcc', *self.gcc_args(c_file, out_file))
   end
 
+  # interpret several rb_files into a binary out_file contaning bytecode
+  def mrbc(rb_files, out_file)
+    system(File.join(@bin_path, 'mrbc'), '-o', out_file, *rb_files)
+  end
+
   module C
+    def self.bc_wrapper(bc_file)
+      c_code = <<'EOF'
+#include <stdlib.h>
+#include <stdint.h>
+#include <mruby.h>
+#include <mruby/string.h>
+#include <mruby/irep.h>
+
+const uint8_t
+#if defined __GNUC__
+__attribute__((aligned(4)))
+#elif defined _MSC_VER
+__declspec(align(4))
+#endif
+EOF
+      c_code += slurp_mrb(bc_file, indent: '') + "\n\n"
+
+      c_code += <<'EOF'
+void check_exc(mrb_state *mrb) {
+  if (mrb->exc) {
+    mrb_value exc = mrb_obj_value(mrb->exc);
+    mrb_value exc_msg = mrb_funcall(mrb, exc, "to_s", 0);
+    fprintf(stderr, "ERROR %s: %s\n",
+            mrb_obj_classname(mrb, exc),
+            mrb_str_to_cstr(mrb, exc_msg));
+    /* mrb_print_backtrace(mrb);   # empty */
+    exit(1);
+  }
+}
+
+int
+main(void)
+{
+  mrb_state *mrb = mrb_open();
+  if (!mrb) {
+    printf("mrb problem");
+    exit(1);
+  }
+  mrb_load_irep(mrb, test_symbol);
+  check_exc(mrb);
+  mrb_close(mrb);
+  return 0;
+}
+EOF
+      c_code
+    end
+
+    def self.slurp_mrb(bc_file, indent: '  ')
+      test_symbol = File.read(bc_file).each_byte.reduce('') { |memo, b|
+        memo + format("0x%0.2x,", b.ord)
+      }
+      ["/* #{bc_file} */",
+       "test_symbol[] = {",
+       test_symbol,
+       "};",
+      ].map { |s| indent + s }.join("\n")
+    end
+
     def self.wrapper(rb_files)
       c_code = <<'EOF'
 #include <stdlib.h>

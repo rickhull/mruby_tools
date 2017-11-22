@@ -18,9 +18,11 @@ describe MRubyTools do
         obj.mruby_dir.must_be_kind_of String
         obj.inc_path.must_be_kind_of String
         obj.ar_path.must_be_kind_of String
+        obj.bin_path.must_be_kind_of String
       }
       @valid.inc_path.must_match %r{include}
       @valid.ar_path.must_match %r{libmruby.a}
+      @valid.bin_path.must_match %r{bin}
     end
   end
 
@@ -29,8 +31,19 @@ describe MRubyTools do
       str = MRubyTools::C.slurp_rb(__FILE__)
       str.must_be_kind_of String
       str.wont_be_empty
-      str.must_match(/mrb_load_n?string\(/)
-      str.must_match(/exc/)
+      str.must_match %r{mrb_load_n?string\(}
+      str.must_match %r{exc}
+    end
+  end
+
+  describe "C.slurp_mrb" do
+    it "must inject the contents of a bytecode file into test_symbol[]" do
+      # bytecode is pure binary -- it doesn't matter what file we provide
+      str = MRubyTools::C.slurp_mrb(__FILE__)
+      str.must_be_kind_of String
+      str.wont_be_empty
+      str.must_match %r{test_symbol}
+      str.must_match %r{0x\d\d,}
     end
   end
 
@@ -46,6 +59,19 @@ describe MRubyTools do
         str.must_match(/mruby/)
         str.must_match(/mrb/)
       }
+    end
+  end
+
+  describe "C.bc_wrapper" do
+    it "must return a string of mruby C code" do
+      str = MRubyTools::C.bc_wrapper(__FILE__)
+      str.must_be_kind_of String
+      str.wont_be_empty
+      str.must_match(/main\(void\)/)
+      str.must_match(/return/)
+      str.must_match(/exit/)
+      str.must_match(/mruby/)
+      str.must_match(/mrb/)
     end
   end
 

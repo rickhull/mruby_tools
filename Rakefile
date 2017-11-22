@@ -37,8 +37,15 @@ task :verbose do
   @verbose = true
 end
 
+@bytecode = false
+
+task :bytecode do
+  @bytecode = true
+end
+
 def mrbt *args
   args.unshift('-v') if @verbose and !args.include?('-v')
+  args.unshift('-b') if @bytecode and !args.include?('-b')
   ruby '-Ilib', 'bin/mrbt', *args
 end
 
