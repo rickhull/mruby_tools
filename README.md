@@ -67,15 +67,18 @@ Prerequisites:
 gem install mruby_tools
 ```
 
-Now, `mrbt` may be used.  It will need to know where to find the mruby_dir,
-so specify it with the `-m` flag or `MRUBY_DIR` environment variable.
+Now, `mrbt` may be used.  We set the `MRUBY_DIR` environment variable:
 
 ```shell
-export MRUBY_DIR=~/src/mruby-1.3.0    # or wherever
+export MRUBY_DIR=~/src/mruby-1.3.0    # or wherever it lives
 mrbt file1.rb file2.rb                # etc.
 ```
 
 ## Usage
+
+```
+mrbt file1.rb file2.rb [...]
+```
 
 With no additional options, `mrbt` will inject the contents of file1.rb and
 file2.rb into C strings, to be loaded with mrb_load_nstring(), written to a
