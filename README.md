@@ -42,7 +42,10 @@ a standalone binary executable `examples/hello_world`, which will then be
 executed with the customary output shown.
 
 Once mruby has been built by rake, it will not be built again by rake as long
-as `libmruby.a` is present.
+as `libmruby.a` is present.  The first run of `rake hello_world` takes up to
+30 seconds or so, depending on your system.  The next run of
+`rake hello_world` takes about a half-second, including compiling and
+running the executable.
 
 ### *rubygems*
 
