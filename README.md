@@ -41,6 +41,9 @@ The rake command will proceed to "compiling" `examples/hello_world.rb` to
 a standalone binary executable `examples/hello_world`, which will then be
 executed with the customary output shown.
 
+Once mruby has been built by rake, it will not be built again by rake as long
+as `libmruby.a` is present.
+
 ### *rubygems*
 
 Only use this if you have an existing mruby built and installed.  `mrbt` will
