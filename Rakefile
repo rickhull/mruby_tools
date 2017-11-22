@@ -21,7 +21,7 @@ end
 # lib/mruby_tools tests
 #
 
-Rake::TestTask.new(test: mrb.ar_path) do |t|
+Rake::TestTask.new :test do |t|
   t.pattern = "test/*.rb"
   t.warning = true
 end
