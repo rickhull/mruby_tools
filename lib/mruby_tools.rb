@@ -85,7 +85,6 @@ EOF
       c_str = File.read(rb_filename)
       size = c_str.size
       c_str = c_str.gsub("\n", '\n').gsub('"', '\"')
-      c_str = File.read(rb_filename).gsub("\n", '\n').gsub('"', '\"')
       [ "/* #{rb_filename} */",
         'mrb_load_nstring(mrb, "' + c_str + '", ' + "#{size});",
         "check_exc(mrb, \"#{rb_filename}\");",
