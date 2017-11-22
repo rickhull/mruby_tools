@@ -174,7 +174,7 @@ rake verbose hello_world
 ```
 
 ```
-/home/vagrant/.rubies/ruby-2.4.0/bin/ruby -Ilib bin/mrbt examples/hello_world.rb -o examples/hello_world -v
+/home/vagrant/.rubies/ruby-2.4.0/bin/ruby -Ilib bin/mrbt -v examples/hello_world.rb -o examples/hello_world
 #include <stdlib.h>
 #include <mruby.h>
 #include <mruby/compile.h>
@@ -210,21 +210,21 @@ main(void)
   return 0;
 }
 
-generated /tmp/mrbt-20171117-24568-no7ee3.c
+generated /tmp/mrbt-20171122-20650-4pi6tt.c
 compiling...
 created binary executable: examples/hello_world
 
 file examples/hello_world
-examples/hello_world: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=2114ab60983156c92a5a74b88895f9c43a4bb086, not stripped
+examples/hello_world: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=e9fb81e70686e761cf49202efc4f3e733d7aab17, not stripped
 
 stat examples/hello_world
   File: ‘examples/hello_world’
-    Size: 1559056         Blocks: 3048       IO Block: 4096   regular file
-Device: 801h/2049d      Inode: 388049      Links: 1
+  Size: 1631784         Blocks: 3192       IO Block: 4096   regular file
+Device: 801h/2049d      Inode: 388542      Links: 1
 Access: (0755/-rwxr-xr-x)  Uid: ( 1000/ vagrant)   Gid: ( 1000/ vagrant)
-Access: 2017-11-17 18:48:25.713629203 +0000
-Modify: 2017-11-17 18:48:25.709629203 +0000
-Change: 2017-11-17 18:48:25.709629203 +0000
+Access: 2017-11-22 23:42:12.202875568 +0000
+Modify: 2017-11-22 23:42:12.190881566 +0000
+Change: 2017-11-22 23:42:12.190881566 +0000
  Birth: -
 
 examples/hello_world
@@ -236,3 +236,82 @@ This proceeds exactly as before but with additional output:
 * Show the generated C code
 * Note the temporary file containing the C code
 * Call `file` and `stat` on the output executable
+
+### Verbose Bytecode Hello World
+
+```shell
+mrbt -v examples/hello_world.rb -b
+
+# or
+rake mrbt -- -b examples/hello_world.rb -v
+
+# or even
+rake verbose bytecode hello_world
+```
+
+```
+/home/vagrant/.rubies/ruby-2.4.0/bin/ruby -Ilib bin/mrbt -b -v examples/hello_world.rb -o examples/hello_world
+creating bytecode.mrb...
+#include <stdlib.h>
+#include <stdint.h>
+#include <mruby.h>
+#include <mruby/string.h>
+#include <mruby/irep.h>
+
+const uint8_t
+#if defined __GNUC__
+__attribute__((aligned(4)))
+#elif defined _MSC_VER
+__declspec(align(4))
+#endif
+/* bytecode.mrb */
+test_symbol[] = {
+0x52,0x49,0x54,0x45,0x30,0x30,0x30,0x34,0x22,0x80,0x00,0x00,0x00,0x65,0x4d,0x41,0x54,0x5a,0x30,0x30,0x30,0x30,0x49,0x52,0x45,0x50,0x00,0x00,0x00,0x47,0x30,0x30,0x30,0x30,0x00,0x00,0x00,0x3f,0x00,0x01,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x80,0x00,0x06,0x01,0x00,0x00,0x84,0x00,0x80,0x00,0xa0,0x00,0x00,0x00,0x4a,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,0x00,0x04,0x70,0x75,0x74,0x73,0x00,0x00,0x0b,0x68,0x65,0x6c,0x6c,0x6f,0x5f,0x77,0x6f,0x72,0x6c,0x64,0x00,0x45,0x4e,0x44,0x00,0x00,0x00,0x00,0x08,
+};
+
+void check_exc(mrb_state *mrb) {
+  if (mrb->exc) {
+    mrb_value exc = mrb_obj_value(mrb->exc);
+    mrb_value exc_msg = mrb_funcall(mrb, exc, "to_s", 0);
+    fprintf(stderr, "ERROR %s: %s\n",
+            mrb_obj_classname(mrb, exc),
+            mrb_str_to_cstr(mrb, exc_msg));
+    /* mrb_print_backtrace(mrb);   # empty */
+    exit(1);
+  }
+}
+
+int
+main(void)
+{
+  mrb_state *mrb = mrb_open();
+  if (!mrb) {
+    printf("mrb problem");
+    exit(1);
+  }
+  mrb_load_irep(mrb, test_symbol);
+  check_exc(mrb);
+  mrb_close(mrb);
+  return 0;
+}
+
+generated /tmp/mrbt-20171122-25456-azsw3n.c
+compiling...
+created binary executable: examples/hello_world
+
+file examples/hello_world
+examples/hello_world: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=61e903e56a9e5d1159cb5a5ea4a669b05b493f44, not stripped
+
+stat examples/hello_world
+  File: ‘examples/hello_world’
+  Size: 1324616   	Blocks: 2592       IO Block: 4096   regular file
+Device: 801h/2049d	Inode: 388542      Links: 1
+Access: (0755/-rwxr-xr-x)  Uid: ( 1000/ vagrant)   Gid: ( 1000/ vagrant)
+Access: 2017-11-22 23:46:09.540147567 +0000
+Modify: 2017-11-22 23:46:09.536149567 +0000
+Change: 2017-11-22 23:46:09.536149567 +0000
+ Birth: -
+
+examples/hello_world
+hello_world
+```
