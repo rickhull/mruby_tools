@@ -13,6 +13,15 @@ with **mruby**.
 executable using mruby.  The .rb files must be
 [mruby-compatible](https://github.com/mruby/mruby/blob/master/doc/limitations.md) (roughly equivalent to MRI v1.9).
 
+Two primary modes of operation are supported:
+
+1. ruby code is injected into a C wrapper which is then compiled.  The ruby
+code is interpreted every time the resulting binary is executed
+
+2. ruby code is interpreted into bytecode, and the bytecode
+is injected into a C wrapper which is then compiled.  This means a faster
+runtime as the code interpretation is not performed at runtime.
+
 ## Install
 
 ### `git clone`

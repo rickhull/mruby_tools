@@ -164,6 +164,7 @@ EOF
 OPTIONS: -o outfile     (provide a name for the standalone executable)
          -c generated.c (leave the specified C file on the filesystem)
          -m mruby_dir   (provide the dir for mruby src)
+         -b             (pregenerate ruby bytecode for faster execution)
          -v             (verbose)
 EOF
       warn "  ERROR: #{msg}" if msg
