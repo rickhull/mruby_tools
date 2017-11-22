@@ -13,23 +13,25 @@ executable using mruby.  The .rb files must be
 
 ## Install
 
-### `git clone` Install
+### `git clone`
+
+By using `git clone` rather than `gem install`, you can make use of rake
+tasks, particularly for compiling mruby itself, a necessary prerequisite
+for using `mrbt`.  This is the easiest way to get started if you are new
+to mruby.  The mruby source is provided as a git submodule;
+therefore you must `git clone --recursive` or else update the submodule
+manually.
 
 Prerequisites:
 
 * git
-* gcc
-* make
-* bison
-* ar
 * rake
+* build tools: gcc, make, bison, ar
 
-```
-$ git clone --recursive https://github.com/rickhull/mruby_tools.git
-
-$ cd mruby_tools
-
-$ rake hello_world
+```shell
+git clone --recursive https://github.com/rickhull/mruby_tools.git
+cd mruby_tools
+rake hello_world
 ```
 
 This will provide mruby source via a git repo submodule and then build it to
@@ -39,7 +41,7 @@ The rake command will proceed to "compiling" `examples/hello_world.rb` to
 a standalone binary executable `examples/hello_world`, which will then be
 executed with the customary output shown.
 
-### *rubygems* Install
+### *rubygems*
 
 Only use this if you have an existing mruby built and installed.  `mrbt` will
 be set up in your PATH, but you will have to specify the path to mruby
@@ -49,23 +51,20 @@ will not have (easy) access to rake tasks.
 Prerequisites:
 
 * rubygems
-* gcc
-* make
-* bison
-* ar
+* build tools: gcc, make, bison, ar
 * mruby_dir
 * mruby_dir/build/host/lib/libmruby.a
 
-```
-$ gem install mruby_tools
+```shell
+gem install mruby_tools
 ```
 
 Now, `mrbt` may be used.  It will need to know where to find the mruby_dir,
 so specify it with the `-m` flag or `MRUBY_DIR` environment variable.
 
-```
-$ export MRUBY_DIR=~/src/mruby-1.3.0    # or wherever
-$ mrbt file1.rb file2.rb                # etc.
+```shell
+export MRUBY_DIR=~/src/mruby-1.3.0    # or wherever
+mrbt file1.rb file2.rb                # etc.
 ```
 
 ## Usage
@@ -77,17 +76,15 @@ a standalone executable (around 1.5 MB for "hello world").
 
 ### With `git clone` and `rake`
 
-You can use `rake mrbt` to get around lacking `bin/mrbt` in your PATH.
-`bin/mrbt` will be invoked with any provided arguments passed along.  Some
-mrbt options conflict with rake options.  You can prevent rake from parsing
-arguments by placing them after ` -- `.
+You can use `rake mrbt` to execute `bin/mrbt` with the proper load path, and
+any arguments will be passed along. Some mrbt options conflict with rake
+options.  You can prevent rake from parsing arguments by placing them
+after ` -- `.
 
-```
-$ rake mrbt -- -h
-
-$ rake mrbt examples/hello_world.rb
-
-$ rake mrbt -- examples/hello_world.rb examples/goodbye_world.rb -o adios
+```shell
+rake mrbt -- -h
+rake mrbt examples/hello_world.rb
+rake mrbt -- examples/hello_world.rb examples/goodbye_world.rb -o adios
 ```
 
 Other useful rake tasks:
@@ -98,16 +95,36 @@ Other useful rake tasks:
 * examples - runs hello_world and timed_simplex
 * verbose - add verbose output, e.g. `rake verbose hello_world`
 
+### With *rubygems*
+
+```shell
+mrbt -h
+```
+
+```
+  USAGE: mrbt file1.rb file2.rb ...
+OPTIONS: -o outfile     (provide a name for the standalone executable)
+         -c generated.c (leave the specified C file on the filesystem)
+         -m mruby_dir   (provide the dir for mruby src)
+         -v             (verbose)
+```
+
 ## Examples
 
 There are some example .rb files in examples/ that can be used to produce
-an executable.  Rake tasks make this easy:
+an executable.  Use `mrbt` or `rake mrbt` as appropriate:
 
-*Note: rake tasks are not (easily) available for the installed gem*
+```shell
+mrbt examples/hello_world.rb
+
+# or
+rake mrbt examples/hello_world.rb
+
+# or even
+rake hello_world
+```
 
 ```
-$ rake hello_world
-
 /home/vagrant/.rubies/ruby-2.4.0/bin/ruby -Ilib bin/mrbt examples/hello_world.rb -o examples/hello_world
 compiling...
 created binary executable: examples/hello_world
@@ -115,7 +132,7 @@ examples/hello_world
 hello_world
 ```
 
-The first line below the prompt shows that rake is executing `mrbt`, passing it
+The first line shows that rake is executing `mrbt` (via `ruby`), passing it
 `examples/hello_world.rb` and naming the output executable
 `examples/hello_world`.
 
@@ -124,9 +141,19 @@ executable: examples/hello_world"
 
 Then `examples/hello_world` is executed, and it outputs "hello_world".
 
-```
-$ rake verbose hello_world
+### Verbose Hello World
 
+```shell
+mrbt examples/hello_world.rb -v
+
+# or
+rake mrbt -- -v examples/hello_world.rb
+
+# or even
+rake verbose hello_world
+```
+
+```
 /home/vagrant/.rubies/ruby-2.4.0/bin/ruby -Ilib bin/mrbt examples/hello_world.rb -o examples/hello_world -v
 #include <stdlib.h>
 #include <mruby.h>
