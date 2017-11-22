@@ -20,13 +20,24 @@ end
 rb_files = opts.fetch(:rb_files)
 MRubyTools::CLI.usage("no .rb files provided") if rb_files.empty?
 
-c_code = MRubyTools::C.wrapper(rb_files)
+# inject a string vs create and inject bytecode
+if opts[:bytecode]
+  c_code = "fake_bytecode"
+else
+  p rb_files
+  c_code = MRubyTools::C.wrapper(rb_files)
+end
 puts c_code + "\n" if opts[:verbose]
 
 c_file = opts.fetch(:c_file)
 c_file.write(c_code)
 c_file.close
 puts "generated #{c_file.path}" if opts[:verbose]
+
+if opts[:bytecode]
+  puts "exiting because bytecode doesn't work yet"
+  exit 0
+end
 
 out_file = opts.fetch(:out_file)
 puts "compiling..."

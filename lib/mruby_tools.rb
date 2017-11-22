@@ -112,6 +112,7 @@ EOF
       mruby_dir = nil
       verbose = false
       help = false
+      bytecode = false
 
       while !argv.empty?
         arg = argv.shift
@@ -128,6 +129,8 @@ EOF
         elsif arg == '-m'
           mruby_dir = argv.shift
           raise "no mruby_dir provided with -m" unless mruby_dir
+        elsif arg == '-b'
+          bytecode = true
         else
           rb_files << arg unless arg == '--'
         end
@@ -141,7 +144,8 @@ EOF
         c_file: c_file,
         out_file: out_file,
         rb_files: rb_files,
-        mruby_dir: mruby_dir }
+        mruby_dir: mruby_dir,
+        bytecode: bytecode }
     end
   end
 end
