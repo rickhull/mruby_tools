@@ -53,11 +53,11 @@ describe MRubyTools do
         str = MRubyTools::C.wrapper(rb_files)
         str.must_be_kind_of String
         str.wont_be_empty
-        str.must_match(/main\(void\)/)
-        str.must_match(/return/)
-        str.must_match(/exit/)
-        str.must_match(/mruby/)
-        str.must_match(/mrb/)
+        str.must_match %r{main\(void\)}
+        str.must_match %r{return}
+        str.must_match %r{exit}
+        str.must_match %r{mruby}
+        str.must_match %r{mrb}
       }
     end
   end
@@ -67,11 +67,11 @@ describe MRubyTools do
       str = MRubyTools::C.bc_wrapper(__FILE__)
       str.must_be_kind_of String
       str.wont_be_empty
-      str.must_match(/main\(void\)/)
-      str.must_match(/return/)
-      str.must_match(/exit/)
-      str.must_match(/mruby/)
-      str.must_match(/mrb/)
+      str.must_match %r{main\(void\)}
+      str.must_match %r{return}
+      str.must_match %r{exit}
+      str.must_match %r{mruby}
+      str.must_match %r{mrb}
     end
   end
 
