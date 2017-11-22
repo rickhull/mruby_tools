@@ -9,12 +9,11 @@ require 'mruby_tools'
 opts = MRubyTools::CLI.args(ARGV)
 MRubyTools::CLI.usage if opts[:help]
 
+mrb = MRubyTools.new(opts[:mruby_dir]) # nil is fine
 begin
-  tool = MRubyTools.new(opts[:mruby_dir] || ENV['MRUBY_DIR'])
-rescue MRubyTools::MRubyNotFound => f
-  warn "can't find #{f}"
-  warn "try -m flag or setting MRUBY_DIR environment variable"
-  warn "try `rake make` to install to default location"
+  mrb.validate!
+rescue MRubyTools::MRubyNotFound => e
+  warn "#{e.class}: can't find #{e}"
   exit 1
 end
 
@@ -31,7 +30,7 @@ puts "generated #{c_file.path}" if opts[:verbose]
 
 out_file = opts.fetch(:out_file)
 puts "compiling..."
-if tool.compile(c_file.path, out_file)
+if mrb.compile(c_file.path, out_file)
   puts "created binary executable: #{out_file}"
 else
   warn "FATAL: compile failed"
