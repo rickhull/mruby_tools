@@ -3,30 +3,36 @@ require 'tempfile'
 class MRubyTools
   class MRubyNotFound < RuntimeError; end
 
-  MRUBY_VERSION = "1.3.0"
-  MRUBY_URL = "https://github.com/mruby/mruby/archive/#{MRUBY_VERSION}.tar.gz"
-  MRUBY_DIR = File.expand_path("../mruby-#{MRUBY_VERSION}", __dir__)
+  MRUBY_DIR = File.expand_path("../mruby", __dir__)
 
-  def self.inc_path(mruby_dir = MRUBY_DIR)
-    File.join(mruby_dir, 'include')
+  def self.mruby_dir
+    ENV['MRUBY_DIR'] || MRUBY_DIR
   end
 
-  def self.ar_path(mruby_dir = MRUBY_DIR)
-    File.join(mruby_dir, 'build', 'host', 'lib', 'libmruby.a')
-  end
-
-  attr_reader :mruby_dir, :mruby_inc, :mruby_ar
+  attr_accessor :mruby_dir, :inc_path, :ar_path
 
   def initialize(mruby_dir = nil)
-    @mruby_dir = mruby_dir || MRUBY_DIR
-    @mruby_inc = self.class.inc_path(@mruby_dir)
-    raise(MRubyNotFound, @mruby_inc) unless File.directory? @mruby_inc
-    @mruby_ar = self.class.ar_path(@mruby_dir)
-    raise(MRubyNotFound, @mruby_ar) unless File.readable? @mruby_ar
+    @mruby_dir = mruby_dir || self.class.mruby_dir
+    @inc_path = File.join(@mruby_dir, 'include')
+    @ar_path = File.join(@mruby_dir, 'build', 'host', 'lib', 'libmruby.a')
+  end
+
+  def src?
+    File.directory?(@inc_path)
+  end
+
+  def built?
+    File.readable?(@ar_path)
+  end
+
+  def validate!
+    raise(MRubyNotFound, @inc_path) unless File.directory? @inc_path
+    raise(MRubyNotFound, @ar_path) unless File.readable? @ar_path
+    self
   end
 
   def gcc_args(c_file, out_file)
-    ['-std=c99', "-I", @mruby_inc, c_file, "-o", out_file, @mruby_ar, '-lm']
+    ['-std=c99', "-I", @inc_path, c_file, "-o", out_file, @ar_path, '-lm']
   end
 
   def compile(c_file, out_file)
