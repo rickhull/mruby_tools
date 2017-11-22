@@ -129,16 +129,17 @@ EOF
           mruby_dir = argv.shift
           raise "no mruby_dir provided with -m" unless mruby_dir
         else
-          rb_files << arg
+          rb_files << arg unless arg == '--'
         end
       end
 
       c_file ||= Tempfile.new(['mrbt-', '.c'])
+      out_file ||= 'outfile'
 
       { verbose: verbose,
         help: help,
         c_file: c_file,
-        out_file: out_file || 'outfile',
+        out_file: out_file,
         rb_files: rb_files,
         mruby_dir: mruby_dir }
     end
