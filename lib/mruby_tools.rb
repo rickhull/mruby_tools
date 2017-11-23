@@ -47,7 +47,7 @@ class MRubyTools
   end
 
   module C
-    def self.bc_wrapper(bc_file)
+    def self.bytecode_wrapper(bc_file)
       c_code = <<'EOF'
 #include <stdlib.h>
 #include <stdint.h>

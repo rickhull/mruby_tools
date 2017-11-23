@@ -24,7 +24,7 @@ if opts[:bytecode]
   bc_file = 'bytecode.mrb'
   puts "creating #{bc_file}..."
   if mrb.mrbc rb_files, bc_file
-    c_code = MRubyTools::C.bc_wrapper(bc_file)
+    c_code = MRubyTools::C.bytecode_wrapper(bc_file)
   else
     warn "FATAL: mrbc bytecode generation failed"
     exit 1

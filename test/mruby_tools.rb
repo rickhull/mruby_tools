@@ -62,9 +62,9 @@ describe MRubyTools do
     end
   end
 
-  describe "C.bc_wrapper" do
+  describe "C.bytecode_wrapper" do
     it "must return a string of mruby C code" do
-      str = MRubyTools::C.bc_wrapper(__FILE__)
+      str = MRubyTools::C.bytecode_wrapper(__FILE__)
       str.must_be_kind_of String
       str.wont_be_empty
       str.must_match %r{main\(void\)}
