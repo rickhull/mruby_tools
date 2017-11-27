@@ -47,6 +47,27 @@ class MRubyTools
   end
 
   module C
+    def self.slurp_mrb(bc_file, indent: '  ')
+      test_symbol = File.read(bc_file).each_byte.reduce('') { |memo, b|
+        memo + format("0x%0.2x,", b.ord)
+      }
+      ["/* #{bc_file} */",
+       "test_symbol[] = {",
+       test_symbol,
+       "};",
+      ].map { |s| indent + s }.join("\n")
+    end
+
+    def self.slurp_rb(rb_filename, indent: '  ')
+      c_str = File.read(rb_filename)
+      size = c_str.size
+      c_str = c_str.gsub("\n", '\n').gsub('"', '\"')
+      [ "/* #{rb_filename} */",
+        'mrb_load_nstring(mrb, "' + c_str + '", ' + "#{size});",
+        "check_exc(mrb, \"#{rb_filename}\");",
+      ].map { |s| indent + s }.join("\n")
+    end
+
     def self.bytecode_wrapper(bc_file)
       c_code = <<'EOF'
 #include <stdlib.h>
@@ -94,17 +115,6 @@ EOF
       c_code
     end
 
-    def self.slurp_mrb(bc_file, indent: '  ')
-      test_symbol = File.read(bc_file).each_byte.reduce('') { |memo, b|
-        memo + format("0x%0.2x,", b.ord)
-      }
-      ["/* #{bc_file} */",
-       "test_symbol[] = {",
-       test_symbol,
-       "};",
-      ].map { |s| indent + s }.join("\n")
-    end
-
     def self.wrapper(rb_files)
       c_code = <<'EOF'
 #include <stdlib.h>
@@ -144,16 +154,6 @@ EOF
 }
 EOF
       c_code
-    end
-
-    def self.slurp_rb(rb_filename, indent: '  ')
-      c_str = File.read(rb_filename)
-      size = c_str.size
-      c_str = c_str.gsub("\n", '\n').gsub('"', '\"')
-      [ "/* #{rb_filename} */",
-        'mrb_load_nstring(mrb, "' + c_str + '", ' + "#{size});",
-        "check_exc(mrb, \"#{rb_filename}\");",
-      ].map { |s| indent + s }.join("\n")
     end
   end
 
