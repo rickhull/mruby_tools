@@ -158,6 +158,8 @@ EOF
   end
 
   module CLI
+    USAGE_EXIT = 1
+
     def self.usage(msg = nil)
       puts <<EOF
   USAGE: mrbt file1.rb file2.rb ...
@@ -168,7 +170,7 @@ OPTIONS: -o outfile     (provide a name for the standalone executable)
          -v             (verbose)
 EOF
       warn "  ERROR: #{msg}" if msg
-      exit(msg ? 1 : 0)
+      exit(msg ? USAGE_EXIT : 0)
     end
 
     def self.args(argv = ARGV)
