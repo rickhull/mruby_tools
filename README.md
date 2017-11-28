@@ -16,9 +16,9 @@ executable using mruby.  The .rb files must be
 Two primary modes of operation are supported:
 
 1. ruby code is injected into a C wrapper which is then compiled.  The ruby
-code is interpreted every time the resulting binary is executed
+code is **interpreted** every time the resulting binary is executed.
 
-2. ruby code is interpreted into bytecode, and the bytecode
+2. ruby code is first interpreted into **bytecode**, and the bytecode
 is injected into a C wrapper which is then compiled.  This means a faster
 runtime as the code interpretation is not performed at runtime.
 
@@ -86,7 +86,12 @@ mrbt file1.rb file2.rb                # etc.
 ## Usage
 
 ```
-mrbt file1.rb file2.rb [...]
+  USAGE: mrbt file1.rb file2.rb ...
+OPTIONS: -o outfile     (provide a name for the standalone executable)
+         -c generated.c (leave the specified C file on the filesystem)
+         -m mruby_dir   (provide the dir for mruby src)
+         -b             (pregenerate ruby bytecode for faster execution)
+         -v             (verbose)
 ```
 
 With no additional options, `mrbt` will inject the contents of file1.rb and
@@ -109,25 +114,12 @@ rake mrbt -- examples/hello_world.rb examples/goodbye_world.rb -o adios
 
 Other useful rake tasks:
 
-* hello world - compiles and runs `examples/hello_world.rb`
-* timed_simplex - compiles and runs several files that work together
+* hello world     - compiles and runs `examples/hello_world.rb`
+* timed_simplex   - compiles and runs several files that work together
 * raise_exception - compiles and runs `examples/raise.rb`
 * examples - runs hello_world and timed_simplex
-* verbose - add verbose output, e.g. `rake verbose hello_world`
-
-### With *rubygems*
-
-```shell
-mrbt -h
-```
-
-```
-  USAGE: mrbt file1.rb file2.rb ...
-OPTIONS: -o outfile     (provide a name for the standalone executable)
-         -c generated.c (leave the specified C file on the filesystem)
-         -m mruby_dir   (provide the dir for mruby src)
-         -v             (verbose)
-```
+* verbose  - add verbose output, e.g. `rake verbose hello_world`
+* bytecode - enable bytecode generation at compile time
 
 ## Examples
 
