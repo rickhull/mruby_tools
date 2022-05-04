@@ -29,7 +29,7 @@ tasks, particularly for compiling mruby itself, a necessary prerequisite
 for using `mrbt`.  This is the easiest way to get started if you are new
 to mruby.  The mruby source is provided as a git submodule;
 therefore you must `git clone --recursive` or else update the submodule
-manually.
+manually: `git submodule init && git submodule update`
 
 Prerequisites:
 
