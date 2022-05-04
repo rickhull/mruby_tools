@@ -74,43 +74,43 @@ end
 # mrbt EXAMPLES
 #
 
-def run_clean outfile, clean: true
+def run_clean execfile, clean: true
   begin
     if @verbose
       puts
-      sh "file", outfile
+      sh "file", execfile
       puts
-      sh "stat", outfile
+      sh "stat", execfile
       puts
     end
-    sh outfile
+    sh execfile
   ensure
     if clean
-      File.unlink outfile unless @verbose
+      File.unlink execfile unless @verbose
     end
   end
 end
 
 desc "Run hello_world example"
 task hello_world: mrb.ar_path do
-  outfile = "examples/hello_world"
-  mrbt "examples/hello_world.rb", "-o", outfile
-  run_clean outfile
+  execfile = "examples/hello_world"
+  mrbt "examples/hello_world.rb", "-o", execfile
+  run_clean execfile
 end
 
 desc "Run timed_simplex example"
 task timed_simplex: mrb.ar_path do
-  outfile = "examples/timed_simplex"
+  execfile = "examples/timed_simplex"
   mrbt "examples/timer.rb", "examples/simplex.rb", "examples/driver.rb",
-       "-o", outfile
-  run_clean outfile
+       "-o", execfile
+  run_clean execfile
 end
 
 desc "Run raise example"
 task raise_exception: mrb.ar_path do
-  outfile = "examples/raise"
-  mrbt "examples/hello_world.rb", "examples/raise.rb", "-o", outfile
-  run_clean outfile
+  execfile = "examples/raise"
+  mrbt "examples/hello_world.rb", "examples/raise.rb", "-o", execfile
+  run_clean execfile
 end
 
 desc "Run examples"
