@@ -1,7 +1,5 @@
-[![Build Status](https://travis-ci.org/rickhull/mruby_tools.svg?branch=master)](https://travis-ci.org/rickhull/mruby_tools)
+[![CI Status](https://github.com/rickhull/mruby_tools/actions/workflows/ci.yaml/badge.svg)](https://github.com/rickhull/mruby_tools/actions/workflows/ci.yaml)
 [![Gem Version](https://badge.fury.io/rb/mruby_tools.svg)](https://badge.fury.io/rb/mruby_tools)
-[![Dependency Status](https://gemnasium.com/rickhull/mruby_tools.svg)](https://gemnasium.com/rickhull/mruby_tools)
-[![Security Status](https://hakiri.io/github/rickhull/mruby_tools/master.svg)](https://hakiri.io/github/rickhull/mruby_tools/master)
 
 # mruby tools
 

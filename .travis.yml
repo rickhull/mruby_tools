@@ -1,8 +1,0 @@
-language: ruby
-rvm:
-  - 2.2
-  - 2.3
-  - 2.4
-  - ruby
-install: gem install minitest
-script: rake
