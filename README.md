@@ -58,6 +58,16 @@ as `libmruby.a` is present.  The first run of `rake hello_world` takes up to
 `rake hello_world` takes about a half-second, including compiling and
 running the executable.
 
+Next, run `rake` within the `mruby` subdir (and git submodule):
+
+```shell
+cd mruby
+rake
+```
+
+This will build some additional tools like `mrbc` (mrb compiler) that we will
+depend on later.
+
 ### *rubygems*
 
 Only use this if you have an existing mruby built and installed.  `mrbt` will
