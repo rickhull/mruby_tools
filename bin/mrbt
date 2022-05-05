@@ -28,9 +28,12 @@ MRubyTools::CLI.usage("no .rb files provided") if rb_files.empty?
 if opts[:bytecode]
   bc_file = 'bytecode.mrb'
   puts "creating #{bc_file}..."
-  if mrb.mrbc rb_files, bc_file
+  out, err, status = mrb.mrbc rb_files, bc_file
+  if status == 0
+    puts out if opts[:verbose]
     c_code = MRubyTools::C.bytecode_wrapper(bc_file)
   else
+    warn err
     warn "FATAL: mrbc bytecode generation failed"
     exit FAIL_MRBC_BYTECODE
   end
@@ -46,9 +49,12 @@ puts "generated #{c_file.path}" if opts[:verbose]
 
 out_file = opts.fetch(:out_file)
 puts "compiling..."
-if mrb.compile(c_file.path, out_file)
+out, err, status = mrb.compile c_file.path, out_file
+if status == 0
+  puts out if opts[:verbose]
   puts "created binary executable: #{out_file}"
 else
+  warn err
   warn "FATAL: compile failed"
   exit FAIL_GCC
 end

@@ -1,3 +1,4 @@
+require 'open3'
 require 'tempfile'
 
 class MRubyTools
@@ -38,12 +39,12 @@ class MRubyTools
   end
 
   def compile(c_file, out_file)
-    system('gcc', *self.gcc_args(c_file, out_file))
+    Open3.capture3('gcc', *self.gcc_args(c_file, out_file))
   end
 
   # interpret several rb_files into a binary out_file contaning bytecode
   def mrbc(rb_files, out_file)
-    system(File.join(@bin_path, 'mrbc'), '-o', out_file, *rb_files)
+    Open3.capture3(File.join(@bin_path, 'mrbc'), '-o', out_file, *rb_files)
   end
 
   module C
