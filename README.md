@@ -40,6 +40,8 @@ Prerequisites:
 ```shell
 git clone --recursive https://github.com/rickhull/mruby_tools.git
 cd mruby_tools
+# if you forgot --recursive above:
+# git submodule init && git submodule update
 rake hello_world
 ```
 
